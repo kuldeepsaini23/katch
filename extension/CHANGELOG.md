@@ -1,16 +1,17 @@
-# What's new in the Snag extension
+# What's new in the Katch extension
 
-Newest first. The desktop app has its own list in the repository's CHANGELOG.md.
+Newest first. The desktop app has its own list in the repository's CHANGELOG.md. Versions before 2.0.0 were called Snag.
 
-## 1.2.0
+## 2.0.0 — Snag is now Katch
 
-The first store release since 1.0.3: it also brings everything in 1.1.0 below (subtitles with sniffed videos), which never went to the stores on its own.
+The first store release since 1.0.3. It brings everything in 1.1.0 below (subtitles with sniffed videos), which never went to the stores on its own, and the switch to turn the extension off per site.
 
-- Turn Snag off on any site: the popup opens with a "Snag on youtube.com" switch. Off means no Download button on that site's pages, nothing picked up from what they play, and the downloads they start stay in the browser. It covers the whole site (www., m. and other subdomains) and takes effect at once, without reloading the page; when switching back on, reload the page if a video was already playing so Snag sees it.
-- "Pause Snag everywhere" in the popup does the same on every site. The toolbar icon shows "off" while Snag is paused, and on a site it's off on.
-- A new options page (the extension's Options in Chrome and Edge, Preferences in Firefox, or "Sites Snag is off on…" at the bottom of the popup) lists the sites Snag is off on, each with a Turn on button, and has the pause switch.
+- New name: the extension is now Katch Download Manager, for the Katch app (formerly Snag). Your settings, pairing and waiting links carry over; nothing to set up again.
+- Turn Katch off on any site: the popup opens with a "Katch on youtube.com" switch. Off means no Download button on that site's pages, nothing picked up from what they play, and the downloads they start stay in the browser. It covers the whole site (www., m. and other subdomains) and takes effect at once, without reloading the page; when switching back on, reload the page if a video was already playing so Katch sees it.
+- "Pause Katch everywhere" in the popup does the same on every site. The toolbar icon shows "off" while Katch is paused, and on a site it's off on.
+- A new options page (the extension's Options in Chrome and Edge, Preferences in Firefox, or "Sites Katch is off on…" at the bottom of the popup) lists the sites Katch is off on, each with a Turn on button, and has the pause switch.
 - These settings follow you to your other computers when the browser syncs extension data.
-- Right-click "Download with Snag" and the popup's own buttons still work everywhere: they only run when you ask.
+- Right-click "Download with Katch" and the popup's own buttons still work everywhere: they only run when you ask.
 
 ## 1.1.0
 

@@ -1,4 +1,4 @@
-// Which Chrome download events Snag should take over. Shared by background.js and the tests.
+// Which Chrome download events Katch should take over. Shared by background.js and the tests.
 
 // Chrome replays its whole download history through downloads.onCreated when the
 // browser starts. Only downloads that are running and began moments ago are new.
@@ -23,7 +23,7 @@ function shouldCatch(item, settings, now) {
 }
 
 /**
- * What to download again when Snag couldn't take a caught download: the same link under the
+ * What to download again when Katch couldn't take a caught download: the same link under the
  * name the browser gave it (the file name only, never its folders).
  */
 function handBackDownload(item) {
@@ -32,7 +32,7 @@ function handBackDownload(item) {
   return name && name !== "." && name !== ".." ? { url, filename: name } : { url };
 }
 
-/** Pages that show a single video/track, where the "Download with Snag" button makes sense. */
+/** Pages that show a single video/track, where the "Download with Katch" button makes sense. */
 function isVideoPage(hostname, pathname) {
   const on = (domain) => hostname === domain || hostname.endsWith("." + domain);
   const parts = pathname.split("/").filter(Boolean);

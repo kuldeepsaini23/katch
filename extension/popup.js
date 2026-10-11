@@ -9,10 +9,10 @@ async function refreshStatus() {
   const dot = $("dot");
   dot.className = "dot";
   if (!app) {
-    $("status").textContent = "Snag isn't running";
+    $("status").textContent = "Katch isn't running";
     dot.classList.add("err");
   } else if (!app.paired) {
-    $("status").textContent = "Found Snag: connect to start";
+    $("status").textContent = "Found Katch: connect to start";
     dot.classList.add("err");
     $("connect").style.display = "block";
   } else {
@@ -42,14 +42,14 @@ function hostOf(tab) {
   }
 }
 
-/** The switches at the top: Snag on this tab's site, and paused everywhere. */
+/** The switches at the top: Katch on this tab's site, and paused everywhere. */
 async function siteSwitches(tab) {
   const host = hostOf(tab);
   const render = async () => {
     const s = await loadSiteToggle(chrome.storage);
     const site = (host && offEntryFor(host, s.offSites)) || siteOf(host);
     const siteOn = !host || !offEntryFor(host, s.offSites);
-    $("site-name").textContent = host ? `Snag on ${site}` : "Snag on this page";
+    $("site-name").textContent = host ? `Katch on ${site}` : "Katch on this page";
     $("site-switch").disabled = !host;
     $("site-switch").setAttribute("aria-checked", String(siteOn));
     $("site-hint").textContent = host ? "Download button, media list, catching downloads" : "Not a web page";
@@ -57,7 +57,7 @@ async function siteSwitches(tab) {
     const off = host ? !isEnabled(host, s) : s.paused;
     document.body.classList.toggle("off", off);
     $("off-note").textContent = s.paused
-      ? "Snag is paused: no Download buttons, nothing picked up from pages, downloads stay in the browser."
+      ? "Katch is paused: no Download buttons, nothing picked up from pages, downloads stay in the browser."
       : `Off on ${site}: no Download button, nothing picked up from its pages, its downloads stay in the browser.`;
     return off;
   };
@@ -123,7 +123,7 @@ async function buttonSettings(tab) {
   render();
 }
 
-/** The page's qualities: pick one and Snag starts it. */
+/** The page's qualities: pick one and Katch starts it. */
 function showQualities(tab, info, sendPage) {
   $("q-title").textContent = info.title || tab.title || "";
   const list = $("q-list");
@@ -131,7 +131,7 @@ function showQualities(tab, info, sendPage) {
   if (info.playlist > 0) {
     const all = document.createElement("button");
     all.className = "q-row";
-    all.textContent = `Whole playlist (${info.playlist}) — choose in Snag`;
+    all.textContent = `Whole playlist (${info.playlist}) — choose in Katch`;
     all.addEventListener("click", sendPage);
     list.append(all);
   }
@@ -185,7 +185,7 @@ async function showMedia(tab) {
       const kind = item.kind === "file" ? "file" : "media";
       // The tab: the subtitles its player loaded go with the stream.
       const result = await chrome.runtime.sendMessage({ type: "send", url: item.url, kind, referrer: tab.url, tabId: tab.id });
-      say(result.ok ? (result.later ? "Saved: goes to Snag when it opens" : "Sent to Snag ✓") : result.error);
+      say(result.ok ? (result.later ? "Saved: goes to Katch when it opens" : "Sent to Katch ✓") : result.error);
     });
     row.append(tag, name, go);
     box.append(row);
@@ -199,7 +199,7 @@ async function init() {
   $("catch").checked = catchDownloads;
 
   $("connect").addEventListener("click", async () => {
-    say("Allow it in the Snag window…");
+    say("Allow it in the Katch window…");
     const result = await chrome.runtime.sendMessage({ type: "pair" });
     say(result.ok ? "Connected ✓" : result.error);
     if (result.ok) {
@@ -217,7 +217,7 @@ async function init() {
 
   $("catch").addEventListener("change", async (e) => {
     await chrome.storage.local.set({ catchDownloads: e.target.checked });
-    say(e.target.checked ? "New downloads go to Snag." : "Chrome keeps its downloads.");
+    say(e.target.checked ? "New downloads go to Katch." : "Chrome keeps its downloads.");
   });
 
   $("send").addEventListener("click", async () => {
@@ -226,7 +226,7 @@ async function init() {
     const sendPage = async () => {
       say("Sending…");
       const result = await chrome.runtime.sendMessage({ type: "send", url: tab.url, referrer: tab.url, tabId: tab.id, withFallback: true });
-      say(result.ok ? (result.later ? "Saved: goes to Snag when it opens" : "Sent to Snag ✓") : result.error);
+      say(result.ok ? (result.later ? "Saved: goes to Katch when it opens" : "Sent to Katch ✓") : result.error);
     };
     say("Reading the page…");
     const probe = await chrome.runtime.sendMessage({ type: "probe", url: tab.url });
@@ -240,7 +240,7 @@ async function init() {
     if (!tab || !/^https?:/.test(tab.url || "")) return say("Only web pages can be saved.");
     say("Saving…");
     const result = await chrome.runtime.sendMessage({ type: "send", url: tab.url, kind: "page", tabId: tab.id });
-    say(result.ok ? (result.later ? "Saved: goes to Snag when it opens" : "Saving in Snag (Pages folder) ✓") : result.error);
+    say(result.ok ? (result.later ? "Saved: goes to Katch when it opens" : "Saving in Katch (Pages folder) ✓") : result.error);
   });
 
   $("grab").addEventListener("click", async () => {

@@ -1,6 +1,6 @@
-// background.js in a bare VM context with a fake `chrome` and `fetch`: what it sends to Snag when
+// background.js in a bare VM context with a fake `chrome` and `fetch`: what it sends to Katch when
 // a tab's stream is downloaded, with the subtitle files the tab's player loaded; and that nothing
-// is recorded or offered on a site Snag is turned off on.
+// is recorded or offered on a site Katch is turned off on.
 const test = require("node:test");
 const assert = require("node:assert");
 const fs = require("node:fs");
@@ -127,7 +127,7 @@ test("a stream with no subtitles is sent exactly as before", async () => {
   assert.deepStrictEqual(Object.keys(bg.sent[0].body).sort(), ["cookies", "format", "title", "url"]);
 });
 
-test("on a site Snag is off on, the tab's media and subtitles aren't recorded or offered", async () => {
+test("on a site Katch is off on, the tab's media and subtitles aren't recorded or offered", async () => {
   const bg = load({ tabUrls: { 4: "https://www.youtube.com/watch?v=1", 6: "https://vimeo.com/1" }, sync: { offSites: ["youtube.com"] } });
   bg.response(4, STREAM, "application/vnd.apple.mpegurl");
   bg.response(4, "https://cdn.example/subs/en.vtt", "text/vtt");
@@ -173,7 +173,7 @@ test("paused everywhere: nothing is recorded on any site, and the toolbar badge 
   assert.strictEqual(bg.badges[2], "", "the tab's badge is its (empty) count again");
 });
 
-test("downloads a page starts on a site Snag is off on stay in the browser", async () => {
+test("downloads a page starts on a site Katch is off on stay in the browser", async () => {
   const bg = load({ sync: { offSites: ["files.example"] } });
   const fire = (item) => Promise.all(bg.chrome.downloads.onCreated.fire({ id: 1, fileSize: 50e6, totalBytes: 50e6, mime: "application/zip", state: "in_progress", startTime: new Date().toISOString(), ...item }));
   await fire({ url: "https://cdn.example/a.zip", referrer: "https://files.example/get" });

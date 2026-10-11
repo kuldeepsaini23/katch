@@ -2,7 +2,7 @@
 // Pure functions shared by background.js and the tests.
 
 const MIN_FILE_BYTES = 1024 * 1024;
-// Ads, analytics, and YouTube's own chunk server (YouTube has its own "Download with Snag" button).
+// Ads, analytics, and YouTube's own chunk server (YouTube has its own "Download with Katch" button).
 const NOISE_HOSTS = ["doubleclick.net", "googlesyndication.com", "google-analytics.com", "googletagmanager.com", "adnxs.com", "moatads.com", "googlevideo.com"];
 const FILE_EXT = /\.(mp4|m4v|webm|mkv|mov|avi|flv|mp3|m4a|aac|ogg|oga|opus|flac|wav)$/i;
 const SEGMENT_EXT = /\.(ts|m4s|cmfv|cmfa)$/i;
@@ -199,7 +199,7 @@ class SubtitleList {
 }
 
 /**
- * What goes to Snag with a stream: the page's own `<track>`s (all of them, though a player
+ * What goes to Katch with a stream: the page's own `<track>`s (all of them, though a player
  * fetches only the one shown) and the subtitle files the player fetched. The page's language
  * and label win over a guess from the file name.
  * @param {{url: string, lang?: string}[]} sniffed

@@ -1,4 +1,4 @@
-// Links sent while Snag is closed wait here (chrome.storage.local) and go to Snag, in order,
+// Links sent while Katch is closed wait here (chrome.storage.local) and go to Katch, in order,
 // as soon as it answers again. Pure helpers shared by background.js and the tests.
 
 /** At most this many links wait; past it the oldest are dropped. */
@@ -11,7 +11,7 @@ function addLater(list, entry, now) {
 }
 
 /**
- * Snag answered with an error about the link itself (not a web link, can't be read…): sending
+ * Katch answered with an error about the link itself (not a web link, can't be read…): sending
  * it again won't help. Not pairing (401/403), a timeout (408) or too many requests (429).
  */
 function isPermanent(status) {
@@ -19,7 +19,7 @@ function isPermanent(status) {
 }
 
 /**
- * Sends waiting links one by one with `send`. A link Snag refuses for good (`send` throws an
+ * Sends waiting links one by one with `send`. A link Katch refuses for good (`send` throws an
  * error with `permanent: true`) is dropped; any other failure stops the run so the order holds.
  * Returns what is still waiting.
  */

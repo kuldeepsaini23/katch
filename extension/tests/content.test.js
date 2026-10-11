@@ -57,7 +57,7 @@ class FakeNode {
   }
 }
 
-/** `sync`: what chrome.storage.sync holds (the sites Snag is off on, paused). */
+/** `sync`: what chrome.storage.sync holds (the sites Katch is off on, paused). */
 function page(href, { sync } = {}) {
   const sent = [];
   const storageListeners = [];
@@ -171,13 +171,13 @@ test("the button's host can't be restyled by the page and ignores clicks a scrip
   assert.ok(p.sent.includes("status"), "the user's click opens the menu");
 });
 
-test("no button on a site Snag is off on; it comes back when turned on, without a reload", async () => {
+test("no button on a site Katch is off on; it comes back when turned on, without a reload", async () => {
   const sync = { offSites: ["youtube.com"] };
   const p = page("https://m.youtube.com/watch?v=1", { sync });
   await p.flush();
   p.tick();
   assert.strictEqual(p.host(), null, "off on youtube.com covers m.youtube.com");
-  assert.ok(!p.sent.includes("prefetch"), "Snag isn't asked to read the page");
+  assert.ok(!p.sent.includes("prefetch"), "Katch isn't asked to read the page");
 
   sync.offSites = [];
   for (const fn of p.storageListeners) fn({ offSites: { newValue: [] } }, "sync");

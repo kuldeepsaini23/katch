@@ -1,10 +1,10 @@
-// Snag turned off on some sites, or paused everywhere. Pure helpers shared by background.js,
+// Katch turned off on some sites, or paused everywhere. Pure helpers shared by background.js,
 // content.js, the popup, the options page and the tests.
 //
 // Kept in chrome.storage.sync (it follows the user to their other browsers), or in
 // chrome.storage.local when sync is missing or refuses the write (quota, policy):
-//   offSites  string[]  sites Snag is off on, as siteOf() names them, sorted ("youtube.com")
-//   paused    boolean   Snag paused everywhere
+//   offSites  string[]  sites Katch is off on, as siteOf() names them, sorted ("youtube.com")
+//   paused    boolean   Katch paused everywhere
 // A copy in local storage wins over sync: it is only written when sync failed, and removed as
 // soon as a sync write works again.
 // Off means: no Download button on the page, the media and subtitles the page loads aren't
@@ -17,14 +17,14 @@ function siteOf(hostname) {
   return (hostname || "").toLowerCase().replace(/\.$/, "").replace(/^(www|m)\./, "");
 }
 
-/** The entry of `offSites` that turns Snag off on `hostname` (the site or a parent of it), if any. */
+/** The entry of `offSites` that turns Katch off on `hostname` (the site or a parent of it), if any. */
 function offEntryFor(hostname, offSites) {
   const host = siteOf(hostname);
   if (!host) return undefined;
   return (offSites || []).find((site) => host === site || host.endsWith(`.${site}`));
 }
 
-/** Whether Snag works on `hostname` with `settings` ({ offSites, paused }). */
+/** Whether Katch works on `hostname` with `settings` ({ offSites, paused }). */
 function isEnabled(hostname, settings) {
   const s = settings || {};
   return !s.paused && !offEntryFor(hostname, s.offSites);
