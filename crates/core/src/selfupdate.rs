@@ -1,8 +1,10 @@
-//! Snag's own updates: the newest GitHub release, its installer and the checksum it must match.
-//! Windows installs with `Snag-Setup-<version>.exe`; Linux replaces its AppImage with the
-//! release's `Snag-x86_64.AppImage`; macOS replaces Snag.app with the one in `Snag-macOS.zip`.
+//! Katch's own updates: the newest GitHub release, its installer and the checksum it must match.
+//! Windows installs with `Katch-Setup-<version>.exe`; Linux replaces its AppImage with the
+//! release's `Katch-x86_64.AppImage`; macOS replaces Katch.app with the one in `Katch-macOS.zip`.
+//! Releases from before the rename only have the Snag names, which are taken when the Katch
+//! ones are missing.
 
-/// Which release file updates this copy of Snag.
+/// Which release file updates this copy of Katch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Platform {
     Windows,
@@ -21,23 +23,34 @@ impl Platform {
 
     /// The release asset this platform installs, as named in the checksums file.
     pub fn installer_name(self, version: &str) -> String {
+        let [name, _] = self.installer_names(version);
+        name
+    }
+
+    /// The names this platform's installer goes by, in the order they're looked for: Katch's,
+    /// then Snag's (releases before the rename; later ones keep copies under it for Snag 1.1.3 and older).
+    pub fn installer_names(self, version: &str) -> [String; 2] {
         match self {
-            Platform::Windows => format!("Snag-Setup-{version}.exe"),
-            Platform::Linux => APPIMAGE.into(),
-            Platform::MacOS => MAC_ZIP.into(),
+            Platform::Windows => [format!("Katch-Setup-{version}.exe"), format!("Snag-Setup-{version}.exe")],
+            Platform::Linux => [APPIMAGE.into(), OLD_APPIMAGE.into()],
+            Platform::MacOS => [MAC_ZIP.into(), OLD_MAC_ZIP.into()],
         }
     }
 }
 
-/// The macOS release: Snag.app zipped (universal; the same name in every release).
-pub const MAC_ZIP: &str = "Snag-macOS.zip";
+/// The macOS release: Katch.app zipped (universal; the same name in every release).
+pub const MAC_ZIP: &str = "Katch-macOS.zip";
+/// `MAC_ZIP` before the rename to Katch.
+pub const OLD_MAC_ZIP: &str = "Snag-macOS.zip";
 
 /// The Linux release's AppImage (the same name in every release; SHA256SUMS-<version>.txt lists it).
-pub const APPIMAGE: &str = "Snag-x86_64.AppImage";
+pub const APPIMAGE: &str = "Katch-x86_64.AppImage";
+/// `APPIMAGE` before the rename to Katch.
+pub const OLD_APPIMAGE: &str = "Snag-x86_64.AppImage";
 
 /// Where releases are listed (tests point it at a local server with `SNAG_UPDATE_URL`).
 pub fn latest_url() -> String {
-    const GITHUB: &str = "https://api.github.com/repos/kuldeepsaini23/snag/releases/latest";
+    const GITHUB: &str = "https://api.github.com/repos/kuldeepsaini23/katch/releases/latest";
     // Release builds always ask GitHub: an environment variable must not pick what gets installed.
     if !cfg!(debug_assertions) {
         return GITHUB.into();
@@ -45,7 +58,7 @@ pub fn latest_url() -> String {
     std::env::var("SNAG_UPDATE_URL").unwrap_or_else(|_| GITHUB.into())
 }
 
-/// A published version of Snag.
+/// A published version of Katch.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Release {
     /// "1.0.2"
@@ -66,7 +79,7 @@ pub fn parse_latest(json: &str) -> Option<Release> {
     parse_latest_for(json, Platform::CURRENT)
 }
 
-/// `parse_latest` for `platform`'s installer.
+/// `parse_latest` for `platform`'s installer: under Katch's name, else under Snag's.
 pub fn parse_latest_for(json: &str, platform: Platform) -> Option<Release> {
     let v: serde_json::Value = serde_json::from_str(json).ok()?;
     if v["draft"].as_bool() == Some(true) || v["prerelease"].as_bool() == Some(true) {
@@ -75,11 +88,11 @@ pub fn parse_latest_for(json: &str, platform: Platform) -> Option<Release> {
     let version = v["tag_name"].as_str()?.trim_start_matches('v').to_string();
     let assets = v["assets"].as_array()?;
     let asset = |name: &str| assets.iter().find(|a| a["name"].as_str() == Some(name)).and_then(|a| a["browser_download_url"].as_str()).map(String::from);
-    let installer_name = platform.installer_name(&version);
+    let (installer_name, installer) = platform.installer_names(&version).into_iter().find_map(|name| asset(&name).map(|url| (name, url)))?;
     Some(Release {
-        installer: asset(&installer_name)?,
+        installer,
         sums: asset(&format!("SHA256SUMS-{version}.txt"))?,
-        page: v["html_url"].as_str().unwrap_or("https://github.com/kuldeepsaini23/snag/releases/latest").to_string(),
+        page: v["html_url"].as_str().unwrap_or("https://github.com/kuldeepsaini23/katch/releases/latest").to_string(),
         installer_name,
         version,
     })
@@ -97,7 +110,7 @@ pub fn checksum_for(sums: &str, file: &str) -> Option<String> {
 
 /// Puts the downloaded, checked AppImage `new` in place of the running one (`target`, which is
 /// `$APPIMAGE`): copied next to it first (same file system), made executable, then renamed over
-/// it in one step, so `target` is always either the old or the new Snag. The running copy keeps
+/// it in one step, so `target` is always either the old or the new Katch. The running copy keeps
 /// working from the old file until it exits.
 #[cfg(unix)]
 pub fn replace_appimage(new: &std::path::Path, target: &std::path::Path) -> std::io::Result<()> {
@@ -120,13 +133,15 @@ pub fn replace_appimage(new: &std::path::Path, target: &std::path::Path) -> std:
     placed
 }
 
-/// Puts the Snag.app inside the checked `zip` in place of the running one (`app`, the `.app`
+/// Puts the Katch.app inside the checked `zip` in place of the running one (`app`, the `.app`
 /// folder): unpacked next to it first (same file system), then the two swapped by renames, so
-/// `app` is the old or the new Snag at any moment and a failure leaves the old one. The running
+/// `app` is the old or the new Katch at any moment and a failure leaves the old one. The running
 /// copy keeps its open files until it exits.
+/// `app` keeps its own name: a Snag.app from before the rename stays where the Dock and the login
+/// item look for it, with Katch inside.
 pub fn replace_app_bundle(zip: &std::path::Path, app: &std::path::Path) -> std::io::Result<()> {
-    let dir = app.parent().ok_or_else(|| std::io::Error::other("Snag.app has no folder"))?;
-    let name = app.file_name().ok_or_else(|| std::io::Error::other("Snag.app has no name"))?;
+    let dir = app.parent().ok_or_else(|| std::io::Error::other("Katch.app has no folder"))?;
+    let name = app.file_name().ok_or_else(|| std::io::Error::other("Katch.app has no name"))?;
     let hidden = |suffix: &str| {
         let mut n = std::ffi::OsString::from(".");
         n.push(name);
@@ -158,7 +173,7 @@ fn bundle_in(dir: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
     let mut apps = std::fs::read_dir(dir)?.filter_map(Result::ok).map(|e| e.path()).filter(|p| p.is_dir() && p.extension().is_some_and(|x| x == "app"));
     match (apps.next(), apps.next()) {
         (Some(app), None) if app.join("Contents").join("Info.plist").is_file() => Ok(app),
-        _ => Err(std::io::Error::other("the update doesn't hold one Snag.app")),
+        _ => Err(std::io::Error::other("the update doesn't hold one Katch.app")),
     }
 }
 
@@ -168,10 +183,10 @@ mod tests {
 
     const LATEST: &str = r#"{
         "tag_name": "v1.0.2", "draft": false, "prerelease": false,
-        "html_url": "https://github.com/kuldeepsaini23/snag/releases/tag/v1.0.2",
+        "html_url": "https://github.com/kuldeepsaini23/katch/releases/tag/v1.0.2",
         "assets": [
-            {"name": "Snag-Setup.exe", "browser_download_url": "https://x.test/Snag-Setup.exe"},
-            {"name": "Snag-Setup-1.0.2.exe", "browser_download_url": "https://x.test/Snag-Setup-1.0.2.exe"},
+            {"name": "Katch-Setup.exe", "browser_download_url": "https://x.test/Katch-Setup.exe"},
+            {"name": "Katch-Setup-1.0.2.exe", "browser_download_url": "https://x.test/Katch-Setup-1.0.2.exe"},
             {"name": "SHA256SUMS-1.0.2.txt", "browser_download_url": "https://x.test/SHA256SUMS-1.0.2.txt"}
         ]
     }"#;
@@ -180,10 +195,10 @@ mod tests {
     fn reads_the_latest_release() {
         let r = parse_latest_for(LATEST, Platform::Windows).expect("a release");
         assert_eq!(r.version, "1.0.2");
-        assert_eq!(r.installer, "https://x.test/Snag-Setup-1.0.2.exe", "the versioned file: it's the one the checksums list");
-        assert_eq!(r.installer_name, "Snag-Setup-1.0.2.exe");
+        assert_eq!(r.installer, "https://x.test/Katch-Setup-1.0.2.exe", "the versioned file: it's the one the checksums list");
+        assert_eq!(r.installer_name, "Katch-Setup-1.0.2.exe");
         assert_eq!(r.sums, "https://x.test/SHA256SUMS-1.0.2.txt");
-        assert_eq!(r.page, "https://github.com/kuldeepsaini23/snag/releases/tag/v1.0.2");
+        assert_eq!(r.page, "https://github.com/kuldeepsaini23/katch/releases/tag/v1.0.2");
     }
 
     #[test]
@@ -191,18 +206,18 @@ mod tests {
         assert_eq!(parse_latest_for(&LATEST.replace(r#""prerelease": false"#, r#""prerelease": true"#), Platform::Windows), None, "pre-release");
         assert_eq!(parse_latest_for(&LATEST.replace(r#""draft": false"#, r#""draft": true"#), Platform::Windows), None, "draft");
         assert_eq!(parse_latest_for(&LATEST.replace("SHA256SUMS-1.0.2.txt", "notes.txt"), Platform::Windows), None, "no checksums: never installed unchecked");
-        assert_eq!(parse_latest_for(&LATEST.replace("Snag-Setup-1.0.2.exe", "Other.exe"), Platform::Windows), None, "no installer");
+        assert_eq!(parse_latest_for(&LATEST.replace("Katch-Setup-1.0.2.exe", "Other.exe"), Platform::Windows), None, "no installer");
         assert_eq!(parse_latest_for("{\"message\": \"Not Found\"}", Platform::Windows), None);
         assert_eq!(parse_latest_for("not json", Platform::Windows), None);
     }
 
     const LATEST_BOTH: &str = r#"{
         "tag_name": "v1.1.0", "draft": false, "prerelease": false,
-        "html_url": "https://github.com/kuldeepsaini23/snag/releases/tag/v1.1.0",
+        "html_url": "https://github.com/kuldeepsaini23/katch/releases/tag/v1.1.0",
         "assets": [
-            {"name": "Snag-Setup-1.1.0.exe", "browser_download_url": "https://x.test/Snag-Setup-1.1.0.exe"},
-            {"name": "Snag-x86_64.AppImage", "browser_download_url": "https://x.test/Snag-x86_64.AppImage"},
-            {"name": "snag_1.1.0_amd64.deb", "browser_download_url": "https://x.test/snag_1.1.0_amd64.deb"},
+            {"name": "Katch-Setup-1.1.0.exe", "browser_download_url": "https://x.test/Katch-Setup-1.1.0.exe"},
+            {"name": "Katch-x86_64.AppImage", "browser_download_url": "https://x.test/Katch-x86_64.AppImage"},
+            {"name": "katch_1.1.0_amd64.deb", "browser_download_url": "https://x.test/katch_1.1.0_amd64.deb"},
             {"name": "SHA256SUMS-1.1.0.txt", "browser_download_url": "https://x.test/SHA256SUMS-1.1.0.txt"}
         ]
     }"#;
@@ -210,9 +225,9 @@ mod tests {
     #[test]
     fn each_platform_picks_its_own_installer() {
         let win = parse_latest_for(LATEST_BOTH, Platform::Windows).expect("windows");
-        assert_eq!((win.installer.as_str(), win.installer_name.as_str()), ("https://x.test/Snag-Setup-1.1.0.exe", "Snag-Setup-1.1.0.exe"));
+        assert_eq!((win.installer.as_str(), win.installer_name.as_str()), ("https://x.test/Katch-Setup-1.1.0.exe", "Katch-Setup-1.1.0.exe"));
         let linux = parse_latest_for(LATEST_BOTH, Platform::Linux).expect("linux");
-        assert_eq!((linux.installer.as_str(), linux.installer_name.as_str()), ("https://x.test/Snag-x86_64.AppImage", APPIMAGE));
+        assert_eq!((linux.installer.as_str(), linux.installer_name.as_str()), ("https://x.test/Katch-x86_64.AppImage", APPIMAGE));
         assert_eq!(linux.sums, "https://x.test/SHA256SUMS-1.1.0.txt", "the same checksums file");
         assert_eq!(parse_latest_for(LATEST, Platform::Linux), None, "a Windows-only release offers Linux nothing");
         assert_eq!(parse_latest_for(&LATEST_BOTH.replace("SHA256SUMS-1.1.0.txt", "x.txt"), Platform::Linux), None, "never unchecked");
@@ -220,12 +235,12 @@ mod tests {
 
     const LATEST_ALL: &str = r#"{
         "tag_name": "v1.2.0", "draft": false, "prerelease": false,
-        "html_url": "https://github.com/kuldeepsaini23/snag/releases/tag/v1.2.0",
+        "html_url": "https://github.com/kuldeepsaini23/katch/releases/tag/v1.2.0",
         "assets": [
-            {"name": "Snag-Setup-1.2.0.exe", "browser_download_url": "https://x.test/Snag-Setup-1.2.0.exe"},
-            {"name": "Snag-x86_64.AppImage", "browser_download_url": "https://x.test/Snag-x86_64.AppImage"},
-            {"name": "Snag-macOS.dmg", "browser_download_url": "https://x.test/Snag-macOS.dmg"},
-            {"name": "Snag-macOS.zip", "browser_download_url": "https://x.test/Snag-macOS.zip"},
+            {"name": "Katch-Setup-1.2.0.exe", "browser_download_url": "https://x.test/Katch-Setup-1.2.0.exe"},
+            {"name": "Katch-x86_64.AppImage", "browser_download_url": "https://x.test/Katch-x86_64.AppImage"},
+            {"name": "Katch-macOS.dmg", "browser_download_url": "https://x.test/Katch-macOS.dmg"},
+            {"name": "Katch-macOS.zip", "browser_download_url": "https://x.test/Katch-macOS.zip"},
             {"name": "SHA256SUMS-1.2.0.txt", "browser_download_url": "https://x.test/SHA256SUMS-1.2.0.txt"}
         ]
     }"#;
@@ -233,27 +248,86 @@ mod tests {
     #[test]
     fn a_mac_takes_the_zip_not_the_disk_image() {
         let mac = parse_latest_for(LATEST_ALL, Platform::MacOS).expect("macos");
-        assert_eq!((mac.installer.as_str(), mac.installer_name.as_str()), ("https://x.test/Snag-macOS.zip", MAC_ZIP));
+        assert_eq!((mac.installer.as_str(), mac.installer_name.as_str()), ("https://x.test/Katch-macOS.zip", MAC_ZIP));
         assert_eq!(mac.sums, "https://x.test/SHA256SUMS-1.2.0.txt", "the same checksums file");
-        assert_eq!(parse_latest_for(LATEST_ALL, Platform::Windows).unwrap().installer_name, "Snag-Setup-1.2.0.exe");
+        assert_eq!(parse_latest_for(LATEST_ALL, Platform::Windows).unwrap().installer_name, "Katch-Setup-1.2.0.exe");
         assert_eq!(parse_latest_for(LATEST_ALL, Platform::Linux).unwrap().installer_name, APPIMAGE);
         assert_eq!(parse_latest_for(LATEST_BOTH, Platform::MacOS), None, "a release without a Mac build offers a Mac nothing");
         assert_eq!(parse_latest_for(&LATEST_ALL.replace("SHA256SUMS-1.2.0.txt", "x.txt"), Platform::MacOS), None, "never unchecked");
         let (a, b) = ("a".repeat(64), "b".repeat(64));
         // As older releases listed files (a folder before the name).
-        let sums = format!("{a} *installer/Snag-Setup-1.2.0.exe\n{b}  macos/Snag-macOS.zip\n");
+        let sums = format!("{a} *installer/Katch-Setup-1.2.0.exe\n{b}  macos/Katch-macOS.zip\n");
         assert_eq!(checksum_for(&sums, MAC_ZIP), Some(b));
     }
 
-    /// A release zip as `ditto -c -k --keepParent Snag.app` makes it: `Snag.app/…` at the top.
+    /// A release from before the rename to Katch: every file under Snag's name.
+    const LATEST_SNAG: &str = r#"{
+        "tag_name": "v1.1.3", "draft": false, "prerelease": false,
+        "html_url": "https://github.com/kuldeepsaini23/snag/releases/tag/v1.1.3",
+        "assets": [
+            {"name": "Snag-Setup.exe", "browser_download_url": "https://x.test/Snag-Setup.exe"},
+            {"name": "Snag-Setup-1.1.3.exe", "browser_download_url": "https://x.test/Snag-Setup-1.1.3.exe"},
+            {"name": "Snag-x86_64.AppImage", "browser_download_url": "https://x.test/Snag-x86_64.AppImage"},
+            {"name": "snag_1.1.3_amd64.deb", "browser_download_url": "https://x.test/snag_1.1.3_amd64.deb"},
+            {"name": "Snag-macOS.dmg", "browser_download_url": "https://x.test/Snag-macOS.dmg"},
+            {"name": "Snag-macOS.zip", "browser_download_url": "https://x.test/Snag-macOS.zip"},
+            {"name": "SHA256SUMS-1.1.3.txt", "browser_download_url": "https://x.test/SHA256SUMS-1.1.3.txt"}
+        ]
+    }"#;
+
+    #[test]
+    fn a_release_from_before_the_rename_is_found_under_snags_names() {
+        let win = parse_latest_for(LATEST_SNAG, Platform::Windows).expect("windows");
+        assert_eq!((win.installer.as_str(), win.installer_name.as_str()), ("https://x.test/Snag-Setup-1.1.3.exe", "Snag-Setup-1.1.3.exe"));
+        let linux = parse_latest_for(LATEST_SNAG, Platform::Linux).expect("linux");
+        assert_eq!((linux.installer.as_str(), linux.installer_name.as_str()), ("https://x.test/Snag-x86_64.AppImage", OLD_APPIMAGE));
+        let mac = parse_latest_for(LATEST_SNAG, Platform::MacOS).expect("macos");
+        assert_eq!((mac.installer.as_str(), mac.installer_name.as_str()), ("https://x.test/Snag-macOS.zip", OLD_MAC_ZIP));
+        assert_eq!(mac.sums, "https://x.test/SHA256SUMS-1.1.3.txt");
+        assert_eq!(parse_latest_for(&LATEST_SNAG.replace("SHA256SUMS-1.1.3.txt", "x.txt"), Platform::Windows), None, "never unchecked");
+        // That release's checksums, found under the name its installer was taken by.
+        let (a, b, c) = ("a".repeat(64), "b".repeat(64), "c".repeat(64));
+        let sums = format!("{a}  Snag-Setup-1.1.3.exe\n{b}  Snag-macOS.zip\n{c}  Snag-x86_64.AppImage\n");
+        for (r, hash) in [(&win, &a), (&mac, &b), (&linux, &c)] {
+            assert_eq!(checksum_for(&sums, &r.installer_name).as_ref(), Some(hash), "{}", r.installer_name);
+        }
+    }
+
+    #[test]
+    fn katchs_names_come_first_when_a_release_carries_both() {
+        // Releases after the rename keep copies under Snag's names for Snag 1.1.3 and older.
+        let names = [
+            "Katch-Setup-1.2.0.exe".to_string(),
+            "Snag-Setup-1.2.0.exe".into(),
+            MAC_ZIP.into(),
+            OLD_MAC_ZIP.into(),
+            APPIMAGE.into(),
+            OLD_APPIMAGE.into(),
+            "SHA256SUMS-1.2.0.txt".into(),
+        ];
+        let assets: Vec<_> = names.iter().map(|n| format!(r#"{{"name": "{n}", "browser_download_url": "https://x.test/{n}"}}"#)).collect();
+        let json = format!(r#"{{"tag_name": "v1.2.0", "draft": false, "prerelease": false, "assets": [{}]}}"#, assets.join(","));
+        for platform in [Platform::Windows, Platform::Linux, Platform::MacOS] {
+            let r = parse_latest_for(&json, platform).expect("a release");
+            assert_eq!(r.installer_name, platform.installer_name("1.2.0"), "{platform:?}");
+            assert!(r.installer_name.starts_with("Katch-"), "{platform:?}: {}", r.installer_name);
+            assert_eq!(r.installer, format!("https://x.test/{}", r.installer_name));
+            // What a Snag (1.1.3 and older) looks for in the same release is there too.
+            let [_, old] = platform.installer_names("1.2.0");
+            assert!(names.contains(&old), "{old}");
+        }
+        assert_eq!(parse_latest_for(&json, Platform::Windows).unwrap().page, "https://github.com/kuldeepsaini23/katch/releases/latest", "no page in the answer");
+    }
+
+    /// A release zip as `ditto -c -k --keepParent Katch.app` makes it: `Katch.app/…` at the top.
     fn mac_zip(at: &std::path::Path, version: &[u8]) {
         use std::io::Write;
         let mut zip = zip::ZipWriter::new(std::fs::File::create(at).unwrap());
         let exe = zip::write::SimpleFileOptions::default().unix_permissions(0o755);
-        zip.add_directory("Snag.app/", exe).unwrap();
-        zip.start_file("Snag.app/Contents/Info.plist", zip::write::SimpleFileOptions::default()).unwrap();
+        zip.add_directory("Katch.app/", exe).unwrap();
+        zip.start_file("Katch.app/Contents/Info.plist", zip::write::SimpleFileOptions::default()).unwrap();
         zip.write_all(b"<plist/>").unwrap();
-        zip.start_file("Snag.app/Contents/MacOS/snag", exe).unwrap();
+        zip.start_file("Katch.app/Contents/MacOS/snag", exe).unwrap();
         zip.write_all(version).unwrap();
         zip.finish().unwrap();
     }
@@ -262,11 +336,11 @@ mod tests {
     fn the_app_bundle_is_swapped_whole() {
         let dir = tempfile::tempdir().unwrap();
         let apps = dir.path().join("Applications");
-        let app = apps.join("Snag.app");
+        let app = apps.join("Katch.app");
         std::fs::create_dir_all(app.join("Contents").join("MacOS")).unwrap();
         std::fs::write(app.join("Contents").join("MacOS").join("snag"), b"old").unwrap();
         std::fs::write(app.join("Contents").join("stale.txt"), b"only in the old one").unwrap();
-        let zip = dir.path().join("Snag-macOS.zip");
+        let zip = dir.path().join("Katch-macOS.zip");
         mac_zip(&zip, b"new");
         replace_app_bundle(&zip, &app).unwrap();
         assert_eq!(std::fs::read(app.join("Contents").join("MacOS").join("snag")).unwrap(), b"new");
@@ -278,21 +352,34 @@ mod tests {
             assert_eq!(mode & 0o111, 0o111, "runnable");
         }
         let left: Vec<_> = std::fs::read_dir(&apps).unwrap().map(|e| e.unwrap().file_name()).collect();
-        assert_eq!(left, ["Snag.app"], "no staging or old copy left behind");
+        assert_eq!(left, ["Katch.app"], "no staging or old copy left behind");
+    }
+
+    #[test]
+    fn a_snag_app_from_before_the_rename_is_updated_where_it_is() {
+        let dir = tempfile::tempdir().unwrap();
+        let app = dir.path().join("Snag.app");
+        std::fs::create_dir_all(app.join("Contents").join("MacOS")).unwrap();
+        std::fs::write(app.join("Contents").join("MacOS").join("snag"), b"old").unwrap();
+        let zip = dir.path().join("Katch-macOS.zip");
+        mac_zip(&zip, b"new");
+        replace_app_bundle(&zip, &app).unwrap();
+        assert_eq!(std::fs::read(app.join("Contents").join("MacOS").join("snag")).unwrap(), b"new", "Katch, in the old bundle's place");
+        assert!(!dir.path().join("Katch.app").exists(), "the Dock and the login item still find it by its old name");
     }
 
     #[test]
     fn a_bad_update_leaves_the_old_app() {
         let dir = tempfile::tempdir().unwrap();
-        let app = dir.path().join("Snag.app");
+        let app = dir.path().join("Katch.app");
         std::fs::create_dir_all(app.join("Contents")).unwrap();
         std::fs::write(app.join("Contents").join("Info.plist"), b"old").unwrap();
-        let not_zip = dir.path().join("Snag-macOS.zip");
+        let not_zip = dir.path().join("Katch-macOS.zip");
         std::fs::write(&not_zip, b"<html>not found</html>").unwrap();
         assert!(replace_app_bundle(&not_zip, &app).is_err());
         let empty = dir.path().join("empty.zip");
         zip::ZipWriter::new(std::fs::File::create(&empty).unwrap()).finish().unwrap();
-        assert!(replace_app_bundle(&empty, &app).is_err(), "no Snag.app inside");
+        assert!(replace_app_bundle(&empty, &app).is_err(), "no .app inside");
         assert_eq!(std::fs::read(app.join("Contents").join("Info.plist")).unwrap(), b"old");
         let left: Vec<_> = std::fs::read_dir(dir.path()).unwrap().map(|e| e.unwrap().file_name().into_string().unwrap()).filter(|n| n.starts_with('.')).collect();
         assert!(left.is_empty(), "{left:?}");
@@ -302,10 +389,10 @@ mod tests {
     fn finds_the_appimages_checksum() {
         let (a, b, c) = ("a".repeat(64), "b".repeat(64), "c".repeat(64));
         // As older releases listed files (a folder before the name).
-        let sums = format!("{a} *installer/Snag-Setup-1.1.0.exe\n{b}  linux/Snag-x86_64.AppImage\n{c}  linux/snag_1.1.0_amd64.deb\n");
+        let sums = format!("{a} *installer/Katch-Setup-1.1.0.exe\n{b}  linux/Katch-x86_64.AppImage\n{c}  linux/katch_1.1.0_amd64.deb\n");
         assert_eq!(checksum_for(&sums, APPIMAGE), Some(b));
-        assert_eq!(checksum_for(&sums, "snag_1.1.0_amd64.deb"), Some(c));
-        assert_eq!(checksum_for(&sums, "Snag-Setup-1.1.0.exe"), Some(a));
+        assert_eq!(checksum_for(&sums, "katch_1.1.0_amd64.deb"), Some(c));
+        assert_eq!(checksum_for(&sums, "Katch-Setup-1.1.0.exe"), Some(a));
     }
 
     #[cfg(unix)]
@@ -313,7 +400,7 @@ mod tests {
     fn the_appimage_is_replaced_in_one_step() {
         use std::os::unix::fs::PermissionsExt;
         let dir = tempfile::tempdir().unwrap();
-        let target = dir.path().join("apps").join("Snag-x86_64.AppImage");
+        let target = dir.path().join("apps").join("Katch-x86_64.AppImage");
         std::fs::create_dir_all(target.parent().unwrap()).unwrap();
         std::fs::write(&target, b"old").unwrap();
         let new = dir.path().join("download");
@@ -322,22 +409,31 @@ mod tests {
         assert_eq!(std::fs::read(&target).unwrap(), b"new");
         assert_eq!(std::fs::metadata(&target).unwrap().permissions().mode() & 0o777, 0o755, "runnable");
         let left: Vec<_> = std::fs::read_dir(target.parent().unwrap()).unwrap().map(|e| e.unwrap().file_name()).collect();
-        assert_eq!(left, ["Snag-x86_64.AppImage"], "no temporary file left behind");
+        assert_eq!(left, ["Katch-x86_64.AppImage"], "no temporary file left behind");
         assert!(replace_appimage(&dir.path().join("missing"), &target).is_err());
         assert_eq!(std::fs::read(&target).unwrap(), b"new", "a failed update leaves the old one");
     }
 
     #[test]
     fn reads_the_checksums_the_release_workflow_writes() {
-        // .github/workflows/release.yml: `sha256sum -- *` over every file of the release.
+        // .github/workflows/release.yml: `sha256sum -- *` over every file of the release, the
+        // copies under Snag's names included (RELEASE-ALIASES.md).
         let (a, b, c, d) = ("a".repeat(64), "b".repeat(64), "c".repeat(64), "d".repeat(64));
-        let sums = format!("{a}  Snag-Setup-1.2.0.exe
+        let sums = format!(
+            "{a}  Katch-Setup-1.2.0.exe
+{b}  Katch-Setup.exe
+{c}  Katch-macOS.zip
+{d}  Katch-x86_64.AppImage
+{a}  Snag-Setup-1.2.0.exe
 {b}  Snag-Setup.exe
 {c}  Snag-macOS.zip
 {d}  Snag-x86_64.AppImage
-");
+"
+        );
         for (platform, hash) in [(Platform::Windows, &a), (Platform::MacOS, &c), (Platform::Linux, &d)] {
-            assert_eq!(checksum_for(&sums, &platform.installer_name("1.2.0")).as_ref(), Some(hash), "{platform:?}");
+            for name in platform.installer_names("1.2.0") {
+                assert_eq!(checksum_for(&sums, &name).as_ref(), Some(hash), "{platform:?}: {name}");
+            }
         }
     }
 
@@ -345,11 +441,12 @@ mod tests {
     fn finds_the_installers_checksum() {
         let a = "a".repeat(64);
         let b = "B".repeat(64);
-        let sums = format!("{a} *installer/Snag-Setup-1.0.2.exe\n{b} *store/snag-chrome-1.0.2.zip\n");
-        assert_eq!(checksum_for(&sums, "Snag-Setup-1.0.2.exe"), Some(a.clone()));
-        assert_eq!(checksum_for(&sums, "snag-chrome-1.0.2.zip"), Some(b.to_ascii_lowercase()));
-        assert_eq!(checksum_for(&sums, "Snag-Setup-1.0.1.exe"), None);
-        assert_eq!(checksum_for(&format!("{a}  Snag-Setup-1.0.2.exe"), "Snag-Setup-1.0.2.exe"), Some(a), "sha256sum's text mode");
-        assert_eq!(checksum_for("short *installer/Snag-Setup-1.0.2.exe", "Snag-Setup-1.0.2.exe"), None);
+        let sums = format!("{a} *installer/Katch-Setup-1.0.2.exe\n{b} *store/katch-chrome-1.0.2.zip\n");
+        assert_eq!(checksum_for(&sums, "Katch-Setup-1.0.2.exe"), Some(a.clone()));
+        assert_eq!(checksum_for(&sums, "katch-chrome-1.0.2.zip"), Some(b.to_ascii_lowercase()));
+        assert_eq!(checksum_for(&sums, "Katch-Setup-1.0.1.exe"), None);
+        assert_eq!(checksum_for(&sums, "Snag-Setup-1.0.2.exe"), None, "another name is another file");
+        assert_eq!(checksum_for(&format!("{a}  Katch-Setup-1.0.2.exe"), "Katch-Setup-1.0.2.exe"), Some(a), "sha256sum's text mode");
+        assert_eq!(checksum_for("short *installer/Katch-Setup-1.0.2.exe", "Katch-Setup-1.0.2.exe"), None);
     }
 }
