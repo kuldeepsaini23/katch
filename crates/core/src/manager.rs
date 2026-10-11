@@ -136,8 +136,8 @@ struct Tools {
 }
 
 impl Tools {
-    /// ffmpeg for conversions: Snag's own copy in `bin`, else one shipped with Snag (Linux: next
-    /// to it; macOS: in Snag.app), else one on the PATH.
+    /// ffmpeg for conversions: Katch's own copy in `bin`, else one shipped with Katch (Linux: next
+    /// to it; macOS: in Katch.app), else one on the PATH.
     fn ffmpeg(&self) -> Option<PathBuf> {
         let name = tool_file("ffmpeg");
         let own = self.bin_dir.join(&name);
@@ -147,7 +147,7 @@ impl Tools {
         bundled(&name).or_else(|| on_path(&name))
     }
 
-    /// macOS: a tool that came inside Snag.app is copied into `bin` the first time (there it can
+    /// macOS: a tool that came inside Katch.app is copied into `bin` the first time (there it can
     /// update itself without touching the signed app), instead of being downloaded.
     #[cfg(target_os = "macos")]
     fn seed_from_bundle(&self, path: &Path) -> bool {
@@ -170,7 +170,7 @@ impl Tools {
         self.bin_dir.join("yt-dlp.checked")
     }
 
-    /// ffmpeg for videos, MP3s and rules: one already there (Snag's own or on PATH), else fetched
+    /// ffmpeg for videos, MP3s and rules: one already there (Katch's own or on PATH), else fetched
     /// once (35 MB, checked against its published SHA-256). `notify` is told before a fetch.
     async fn ensure_ffmpeg(&self, notify: impl FnOnce()) -> Result<PathBuf, String> {
         if let Some(found) = self.ffmpeg() {
@@ -314,7 +314,7 @@ fn make_runnable(path: &Path) {
     let _ = path;
 }
 
-/// A tool shipped with Snag: Linux, next to its program; macOS, in `Snag.app/Contents/Resources/bin`
+/// A tool shipped with Katch: Linux, next to its program; macOS, in `Katch.app/Contents/Resources/bin`
 /// (the program is `Contents/MacOS/snag`). Windows ships none.
 fn bundled(name: &str) -> Option<PathBuf> {
     let exe_dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
@@ -438,7 +438,7 @@ impl Manager {
         self.tools.ensure_ffmpeg(|| {}).await
     }
 
-    /// The newest published version of Snag (`None` when GitHub can't be reached or lists nothing
+    /// The newest published version of Katch (`None` when GitHub can't be reached or lists nothing
     /// installable).
     pub async fn latest_release(&self) -> Option<crate::selfupdate::Release> {
         let resp = self.tools.client.get(crate::selfupdate::latest_url()).header("Accept", "application/vnd.github+json").send().await.ok()?;

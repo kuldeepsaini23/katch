@@ -1,6 +1,6 @@
-# What's new in Snag
+# What's new in Katch
 
-Newest first. Snag shows the newest entry once after an update; the Help menu (?) has the full list.
+Newest first. Katch (called Snag up to 1.1.3) shows the newest entry once after an update; the Help menu (?) has the full list.
 
 ## 1.1.3 — 2026-10-11
 

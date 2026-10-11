@@ -311,7 +311,7 @@ fn apply(m: &mut Model, scene: &str) {
             let release = rdm_core::selfupdate::Release {
                 version: "1.0.2".into(),
                 installer: String::new(),
-                installer_name: "Snag-Setup-1.0.2.exe".into(),
+                installer_name: "Katch-Setup-1.0.2.exe".into(),
                 sums: String::new(),
                 page: String::new(),
             };

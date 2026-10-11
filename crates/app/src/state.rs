@@ -275,7 +275,7 @@ fn link_ext(url: &str) -> String {
     last.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase()).unwrap_or_default()
 }
 
-/// The link ends in a file name Snag sorts into a category (`a.zip`, `clip.mp4`).
+/// The link ends in a file name Katch sorts into a category (`a.zip`, `clip.mp4`).
 fn names_a_file(url: &str) -> bool {
     let ext = link_ext(url);
     !ext.is_empty() && !CLIPBOARD_SKIPS.contains(&ext.as_str()) && rdm_core::Category::from_name(&format!("file.{ext}")) != rdm_core::Category::Other
@@ -563,13 +563,13 @@ pub struct Model {
     pub pair_request: Option<(u64, String)>,
     /// "Already downloaded": the finished download a new link matched (nothing was added).
     pub duplicate: Option<Item>,
-    /// A newer Snag to offer (and whether it is being fetched).
+    /// A newer Katch to offer (and whether it is being fetched).
     pub update: Option<UpdateOffer>,
     /// The version put off with "Later" (this session).
     pub update_later: Option<String>,
     /// "Check for updates" was clicked: the answer is shown even when there's nothing new.
     pub update_checking: bool,
-    /// When Snag last looked for a newer version (showing the window looks again, not too often).
+    /// When Katch last looked for a newer version (showing the window looks again, not too often).
     pub update_checked_at: Option<std::time::Instant>,
     /// The mouse, in window coordinates (for the right-click menu).
     pub cursor: iced::Point,
@@ -608,7 +608,7 @@ pub struct Model {
     pub version_checked: bool,
     /// Windows' app mode is light (read from the registry; followed when the theme is "Follow Windows").
     pub system_light: bool,
-    /// Linux: Snag starts in the tray at sign-in (its autostart entry exists).
+    /// Linux: Katch starts in the tray at sign-in (its autostart entry exists).
     pub autostart: bool,
     /// Mica (or acrylic) is behind the window: the translucent tokens can be drawn.
     pub backdrop: bool,
@@ -1482,7 +1482,7 @@ mod tests {
     }
 }
 
-/// A newer Snag, offered in the corner card.
+/// A newer Katch, offered in the corner card.
 #[derive(Debug, Clone, PartialEq)]
 pub struct UpdateOffer {
     pub release: rdm_core::selfupdate::Release,

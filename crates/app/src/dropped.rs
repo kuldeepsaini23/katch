@@ -43,7 +43,7 @@ pub fn links_in(text: &str) -> Vec<String> {
         if link.len() <= scheme.len() {
             continue;
         }
-        // "HTTPS://" works too: the rest of Snag expects the scheme in lower case.
+        // "HTTPS://" works too: the rest of Katch expects the scheme in lower case.
         let link = format!("{scheme}{}", &link[scheme.len()..]);
         if !links.contains(&link) {
             links.push(link);

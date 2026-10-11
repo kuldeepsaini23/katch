@@ -52,7 +52,7 @@ async fn ping_reports_pairing() {
     assert_eq!(body["paired"], false);
     let paired = get(b.port, "/ping", Some(TOKEN)).await.1;
     assert_eq!(paired["paired"], true);
-    assert_eq!(paired["accent"], "#d9682b", "the extension follows Snag's colour (copper by default)");
+    assert_eq!(paired["accent"], "#d9682b", "the extension follows Katch's colour (copper by default)");
     assert!(body.get("accent").is_none(), "only paired extensions get the settings");
 }
 
@@ -418,7 +418,7 @@ async fn extension_picks_the_quality_itself() {
     let items = m.snapshot().await.items;
     assert_eq!(items.len(), 1);
     assert_eq!(items[0].kind, rdm_core::Kind::Media(rdm_core::MediaFormat::AudioMp3));
-    // A page Snag can't read: the error, for the extension to show (and fall back).
+    // A page Katch can't read: the error, for the extension to show (and fall back).
     let (status, reply) = post_to(b.port, "/probe", json!({ "url": "https://videos.example/watch/fail" }), TOKEN).await;
     assert_eq!(status, 422);
     assert!(reply["error"].as_str().unwrap().contains("Unsupported URL"), "{reply}");
@@ -487,7 +487,7 @@ async fn only_web_pictures_are_taken_as_thumbnails() {
     let dir = tempfile::tempdir().unwrap();
     let m = manager(dir.path()).await;
     let b = start(m.clone(), 48381..=48390).await.unwrap();
-    // A file: "thumbnail" would make Snag read a local file, or a network share (sending the
+    // A file: "thumbnail" would make Katch read a local file, or a network share (sending the
     // Windows login to whoever runs it).
     let thumbs = [r"file:\\host\share\a.png", "file:///C:/x.png", r"\\host\share\b.png", "https://i.example/ok.jpg"];
     for (n, thumbnail) in thumbs.iter().enumerate() {
@@ -570,7 +570,7 @@ async fn a_sniffed_file_and_a_fallback_stream_keep_their_subtitles() {
     let items = m.snapshot().await.items;
     assert_eq!(items[0].subtitle_links.len(), 1, "a direct video file gets them too");
 
-    // A page Snag can't read: the stream it played is added instead, with the subtitles.
+    // A page Katch can't read: the stream it played is added instead, with the subtitles.
     let mut rx = m.subscribe();
     let body = json!({ "url": "https://videos.example/watch/fail", "referrer": "https://videos.example/watch/fail", "fallback": "https://cdn.example/v/movie.mp4", "subtitles": subs });
     assert_eq!(post(b.port, body, TOKEN).await.0, 202);

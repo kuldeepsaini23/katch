@@ -104,7 +104,7 @@ pub struct MediaOptions {
     pub subtitles: Option<String>,
     /// The page the media was found on (`--referer`): many stream hosts refuse without it.
     pub referer: Option<String>,
-    /// Snag's own ffmpeg (`--ffmpeg-location`); None: yt-dlp looks on PATH.
+    /// Katch's own ffmpeg (`--ffmpeg-location`); None: yt-dlp looks on PATH.
     pub ffmpeg: Option<PathBuf>,
 }
 
@@ -170,7 +170,7 @@ pub fn is_media_url(url: &str) -> bool {
 /// Parses `yt-dlp -J --flat-playlist` output.
 /// What yt-dlp says when a page's player builds its link in JavaScript: its generic reader then
 /// returns a piece of the script (`…/' + video_url + '`) as the "video".
-const NO_VIDEO: &str = "No video found on this page. Play the video in the browser, then use the Snag button on the page";
+const NO_VIDEO: &str = "No video found on this page. Play the video in the browser, then use the Katch button on the page";
 
 /// A link that is really a fragment of page script (quotes, spaces, braces), not an address.
 fn is_script_fragment(url: &str) -> bool {
@@ -850,9 +850,9 @@ mod ffmpeg_location {
 
     #[test]
     fn ytdlp_is_told_where_ffmpeg_is() {
-        let opts = MediaOptions { ffmpeg: Some(PathBuf::from(r"C:\Snag\bin\ffmpeg.exe")), ..Default::default() };
+        let opts = MediaOptions { ffmpeg: Some(PathBuf::from(r"C:\Katch\bin\ffmpeg.exe")), ..Default::default() };
         let args = build_args(&MediaFormat::AudioMp3, Path::new(r"C:\dl"), "https://youtu.be/x", &opts);
-        assert!(args.windows(2).any(|w| w[0] == "--ffmpeg-location" && w[1] == r"C:\Snag\bin\ffmpeg.exe"), "{args:?}");
+        assert!(args.windows(2).any(|w| w[0] == "--ffmpeg-location" && w[1] == r"C:\Katch\bin\ffmpeg.exe"), "{args:?}");
         let none = build_args(&MediaFormat::AudioMp3, Path::new(r"C:\dl"), "https://youtu.be/x", &MediaOptions::default());
         assert!(!none.iter().any(|a| a == "--ffmpeg-location"), "none known: yt-dlp looks on PATH itself");
     }

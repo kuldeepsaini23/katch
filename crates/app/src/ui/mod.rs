@@ -242,7 +242,7 @@ fn confirm_pair(origin: &str, c: Colors) -> Element<'_, Message> {
             column![
                 text("Connect a browser extension?").size(16).font(style::SEMIBOLD),
                 text(format!("{} wants to send downloads here.", crate::view::ellipsize(origin, 72))).size(12.5).font(style::SEMIBOLD),
-                text("Allow it only if you just clicked Connect in Snag's extension. If you didn't, choose Don't allow.").size(12.5).color(c.text2),
+                text("Allow it only if you just clicked Connect in Katch's extension. If you didn't, choose Don't allow.").size(12.5).color(c.text2),
             ]
             .spacing(4)
             .width(Fill),
@@ -270,7 +270,7 @@ fn confirm_quit(m: &Model, c: Colors) -> Element<'_, Message> {
             badge,
             column![
                 text(format!("{what} still running")).size(16).font(style::SEMIBOLD),
-                text(format!("Quitting pauses {them}. Snag continues from where it stopped the next time you open it.")).size(12.5).color(c.text2),
+                text(format!("Quitting pauses {them}. Katch continues from where it stopped the next time you open it.")).size(12.5).color(c.text2),
             ]
             .spacing(4)
             .width(Fill),
@@ -382,11 +382,11 @@ fn toast(m: &Model, c: Colors) -> Option<Element<'_, Message>> {
     Some(card(body.into()).into())
 }
 
-/// "Snag 1.0.2 is ready": What's new (the release page), Update now, or put it off.
+/// "Katch 1.0.2 is ready": What's new (the release page), Update now, or put it off.
 fn update_offer(u: &crate::state::UpdateOffer, c: Colors) -> Element<'static, Message> {
     let badge = container(icon(Icon::Sparkle, 16).color(c.accent)).center(32).style(style::tag(c.accent_soft, c.accent));
     let notes = button(text("What's new").size(12).font(style::SEMIBOLD)).style(style::ghost(c)).padding([6, 10]).on_press(Message::UpdateNotes);
-    // A copy Snag can't replace itself (Linux, not the AppImage): the release page has the package.
+    // A copy Katch can't replace itself (Linux, not the AppImage): the release page has the package.
     let installable = crate::updater::can_install();
     let (label, press) = if installable { ("Update now", Message::UpdateNow) } else { ("Download", Message::UpdateNotes) };
     let install = button(text(if u.busy { "Updating…" } else { label }).size(12).font(style::SEMIBOLD))
@@ -397,13 +397,13 @@ fn update_offer(u: &crate::state::UpdateOffer, c: Colors) -> Element<'static, Me
     let line = if u.busy {
         "Downloading and checking it…".to_string()
     } else if installable {
-        "Snag closes, updates and opens again".to_string()
+        "Katch closes, updates and opens again".to_string()
     } else {
         "Get the new package from the release page".to_string()
     };
     row![
         badge,
-        column![text(format!("Snag {} is ready", u.release.version)).size(13).font(style::SEMIBOLD), small(line, c.text3)].spacing(2).width(Fill),
+        column![text(format!("Katch {} is ready", u.release.version)).size(13).font(style::SEMIBOLD), small(line, c.text3)].spacing(2).width(Fill),
         notes,
         install,
         later,

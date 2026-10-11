@@ -56,7 +56,7 @@ impl Step {
     }
 }
 
-/// Show the tour at launch: never finished or skipped, and nothing says Snag was used before
+/// Show the tour at launch: never finished or skipped, and nothing says Katch was used before
 /// (no downloads, no version seen; an update from a build without the tour isn't a new user).
 pub fn on_launch(tour_done: bool, has_history: bool, last_seen_version: &str) -> bool {
     !tour_done && !has_history && last_seen_version.trim().is_empty()

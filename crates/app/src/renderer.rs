@@ -1,4 +1,4 @@
-//! How the window is drawn. Snag's window is mostly still, so the CPU (iced's tiny-skia
+//! How the window is drawn. Katch's window is mostly still, so the CPU (iced's tiny-skia
 //! renderer) draws it with ~35 MB; the GPU path loads every graphics driver on the PC (~200 MB,
 //! and it wakes a laptop's discrete GPU). The GPU stays one switch away (Settings → Appearance).
 //! macOS draws with the GPU (Metal) always: those costs are a PC's, while drawing a Retina window

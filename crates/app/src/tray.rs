@@ -1,4 +1,4 @@
-//! The notification-area (tray) icon: Snag keeps running there when its window is closed.
+//! The notification-area (tray) icon: Katch keeps running there when its window is closed.
 //! Windows: it lives on the UI thread. Linux: a StatusNotifierItem over D-Bus (ksni, no GTK),
 //! served from a thread of its own, which the `Tray` handle sends new icons to; KDE, Cinnamon
 //! and Xfce show it, GNOME with the AppIndicator extension. With no tray host it waits quietly
@@ -122,7 +122,7 @@ impl ksni::Tray for LinuxTray {
     }
 
     fn title(&self) -> String {
-        "Snag".into()
+        "Katch".into()
     }
 
     fn category(&self) -> ksni::Category {
@@ -134,7 +134,7 @@ impl ksni::Tray for LinuxTray {
     }
 
     fn tool_tip(&self) -> ksni::ToolTip {
-        ksni::ToolTip { title: "Snag".into(), ..Default::default() }
+        ksni::ToolTip { title: "Katch".into(), ..Default::default() }
     }
 
     /// A left click opens the window.
@@ -147,11 +147,11 @@ impl ksni::Tray for LinuxTray {
             ksni::menu::StandardItem { label: label.into(), activate: Box::new(move |_: &mut Self| send(message())), ..Default::default() }.into()
         };
         vec![
-            item("Open Snag", || Message::TrayOpen),
+            item("Open Katch", || Message::TrayOpen),
             item("Pause all", || Message::PauseAll),
             item("Resume all", || Message::ResumeAll),
             ksni::MenuItem::Separator,
-            item("Quit Snag", || Message::TrayQuit),
+            item("Quit Katch", || Message::TrayQuit),
         ]
     }
 }
@@ -160,14 +160,14 @@ impl ksni::Tray for LinuxTray {
 fn build() -> Option<TrayIcon> {
     let menu = Menu::new();
     menu.append_items(&[
-        &MenuItem::with_id(OPEN, "Open Snag", true, None),
+        &MenuItem::with_id(OPEN, "Open Katch", true, None),
         &MenuItem::with_id(PAUSE_ALL, "Pause all", true, None),
         &MenuItem::with_id(RESUME_ALL, "Resume all", true, None),
         &PredefinedMenuItem::separator(),
-        &MenuItem::with_id(QUIT, "Quit Snag", true, None),
+        &MenuItem::with_id(QUIT, "Quit Katch", true, None),
     ])
     .ok()?;
-    let tray = TrayIconBuilder::new().with_menu(Box::new(menu)).with_tooltip("Snag");
+    let tray = TrayIconBuilder::new().with_menu(Box::new(menu)).with_tooltip("Katch");
     // macOS: the mark's ink as a template (the menu bar tints it); its menu opens on a click, as
     // menu bar items do there.
     #[cfg(target_os = "macos")]
@@ -187,7 +187,7 @@ fn send(message: Message) {
     }
 }
 
-/// Shows the window, as the tray's Open Snag does (a click on a notification; macOS: on the Dock
+/// Shows the window, as the tray's Open Katch does (a click on a notification; macOS: on the Dock
 /// icon). Any thread.
 pub fn open_window() {
     send(Message::TrayOpen);

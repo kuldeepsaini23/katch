@@ -111,7 +111,7 @@ fn welcome<'a>(c: Colors) -> Element<'a, Message> {
     let hero = row![
         logo,
         column![
-            text("Welcome to Snag").size(20).font(style::SEMIBOLD),
+            text("Welcome to Katch").size(20).font(style::SEMIBOLD),
             text("Fast, resumable downloads: files, videos, music and torrents. Four quick choices and you're set; skip any time.").size(12.5).color(c.text2),
         ]
         .spacing(4)
@@ -121,7 +121,7 @@ fn welcome<'a>(c: Colors) -> Element<'a, Message> {
     .align_y(Alignment::Center);
     let points = card(
         vec![
-            point(Icon::Link, "Paste a link, or just copy one", "Snag spots copied links and offers them in the corner", c),
+            point(Icon::Link, "Paste a link, or just copy one", "Katch spots copied links and offers them in the corner", c),
             point(Icon::FilmStrip, "Videos and music from 1,000+ sites", "Pick the quality, an MP3, or a whole playlist", c),
             point(Icon::ArrowClockwise, "Pause, resume, schedule", "Downloads continue where they stopped, even after a restart", c),
         ],
@@ -132,7 +132,7 @@ fn welcome<'a>(c: Colors) -> Element<'a, Message> {
 
 fn folder<'a>(m: &'a Model, c: Colors) -> Element<'a, Message> {
     let d = &m.draft;
-    let input = text_input(r"C:\Users\you\Downloads\Snag", &d.download_dir)
+    let input = text_input(r"C:\Users\you\Downloads\Katch", &d.download_dir)
         .on_input(Message::DraftDir)
         .on_submit(Message::TourNext)
         .size(12.5)
@@ -202,14 +202,14 @@ fn extension<'a>(m: &'a Model, c: Colors) -> Element<'a, Message> {
         r.push(button(label).style(style::outline(c)).padding([4, 9]).on_press(Message::CopyText(page.to_string())))
     });
     let get = column![
-        step("1", "Add the Snag extension to your browser", "On the browser's extensions page: Developer mode, then Load unpacked and pick Snag's extension folder."),
+        step("1", "Add the Katch extension to your browser", "On the browser's extensions page: Developer mode, then Load unpacked and pick Katch's extension folder."),
         row![Space::new().width(36), column![small("Copy the extensions page's address, then paste it into the address bar:", c.text3), pages].spacing(6)]
             .padding(Padding { bottom: 10.0, right: 14.0, ..Default::default() }),
     ];
     let listening = m.bridge_status.starts_with("Listening");
     let status = row![
         container(Space::new()).width(7).height(7).style(style::tag(if listening { c.success } else { c.danger }, c.text)),
-        small(if listening { "Snag is ready for the extension" } else { "The extension can't reach Snag right now" }, if listening { c.success } else { c.danger }),
+        small(if listening { "Katch is ready for the extension" } else { "The extension can't reach Katch right now" }, if listening { c.success } else { c.danger }),
     ]
     .spacing(7)
     .align_y(Alignment::Center);
@@ -218,8 +218,8 @@ fn extension<'a>(m: &'a Model, c: Colors) -> Element<'a, Message> {
         card(
             vec![
                 get.into(),
-                step("2", "Click Connect in the extension", "Open the Snag button in the browser's toolbar and press Connect."),
-                step("3", "Click Allow here", "Snag asks once. There's no code to copy."),
+                step("2", "Click Connect in the extension", "Open the Katch button in the browser's toolbar and press Connect."),
+                step("3", "Click Allow here", "Katch asks once. There's no code to copy."),
             ],
             c,
         ),
@@ -229,7 +229,7 @@ fn extension<'a>(m: &'a Model, c: Colors) -> Element<'a, Message> {
     .into()
 }
 
-/// The last step: what Snag may use on this PC. Nothing below is on unless the user says so
+/// The last step: what Katch may use on this PC. Nothing below is on unless the user says so
 /// here (or later in Settings); the rest is explained, not hidden.
 fn clipboard<'a>(m: &'a Model, c: Colors) -> Element<'a, Message> {
     let switch_row = |glyph: Icon, title: &'a str, desc: &'a str, on: bool, msg: fn(bool) -> Message| -> Element<'a, Message> {
@@ -260,7 +260,7 @@ fn clipboard<'a>(m: &'a Model, c: Colors) -> Element<'a, Message> {
         c,
     );
     column![
-        heading(Icon::Gear, "You decide what Snag may use", "Change any of these later in Settings.", c),
+        heading(Icon::Gear, "You decide what Katch may use", "Change any of these later in Settings.", c),
         choices,
         facts,
         small("Try a link puts a small test file (1 MB) in the link bar. Then click + Add to download it.", c.text2),
@@ -274,7 +274,7 @@ pub fn coach<'a>(m: &Model, mark: Mark, c: Colors) -> Element<'a, Message> {
     let (title, body) = match mark {
         Mark::Add if m.url == crate::tour::SAMPLE_LINK => ("Your test link is ready", "Click + Add to download it. Any link you paste or type goes the same way."),
         Mark::Add => ("Add a download", "Paste a link in the bar and click + Add. Copied links pop up by themselves."),
-        Mark::Speed => ("Limit the speed", "Cap Snag's bandwidth so browsing and calls stay smooth, with presets for one click."),
+        Mark::Speed => ("Limit the speed", "Cap Katch's bandwidth so browsing and calls stay smooth, with presets for one click."),
         Mark::Help => ("Help is here", "Keyboard shortcuts, help, what's new and Report a bug. F1 opens help any time."),
     };
     let at = MARKS.iter().position(|k| *k == mark).unwrap_or(0);

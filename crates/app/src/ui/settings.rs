@@ -35,11 +35,11 @@ pub fn view<'a>(m: &'a Model, phone: Option<(&'a str, &'a iced::widget::qr_code:
 
     let (title, subtitle) = match m.settings_tab {
         SettingsTab::General => ("General", "Where files go and what happens when they finish"),
-        SettingsTab::Appearance => ("Appearance", "Make Snag yours: light or dark, and any accent colour"),
-        SettingsTab::Connections => ("Connections", "How hard Snag pushes each server"),
+        SettingsTab::Appearance => ("Appearance", "Make Katch yours: light or dark, and any accent colour"),
+        SettingsTab::Connections => ("Connections", "How hard Katch pushes each server"),
         SettingsTab::Speed => ("Speed & Schedule", "Cap bandwidth and run queues on a schedule"),
         SettingsTab::Extension => ("Extension", "Catch downloads and videos straight from Chrome"),
-        SettingsTab::Tools => ("Tools", "Helpers Snag uses for video and audio"),
+        SettingsTab::Tools => ("Tools", "Helpers Katch uses for video and audio"),
     };
     let close = button(container(icon(Icon::X, 13)).center(Fill)).width(28).height(28).padding(0).style(style::secondary(c)).on_press(Message::CloseSettings);
     let head = row![column![text(title).size(17).font(style::SEMIBOLD), small(subtitle, c.text2)].spacing(3).width(Fill), close];
@@ -134,7 +134,7 @@ fn behaviour(m: &Model, c: Colors) -> Vec<Element<'_, Message>> {
         line("Start downloads immediately", "Otherwise new items wait, paused, until you start them", switch(d.start_immediately, Message::DraftStart, c), c),
         line("Watch the clipboard for links", "A copied link pops up in the corner, ready to download", switch(d.clipboard_watch, Message::DraftClipboard, c), c),
         line("Notify when downloads finish", crate::platform::NOTIFY_HINT, switch(d.notify, Message::DraftNotify, c), c),
-        line("Check for updates", "Asks GitHub for a newer Snag at start and every few hours; you choose when to install", switch(d.check_updates, Message::DraftCheckUpdates, c), c),
+        line("Check for updates", "Asks GitHub for a newer Katch at start and every few hours; you choose when to install", switch(d.check_updates, Message::DraftCheckUpdates, c), c),
         line(
             "Show the tour again",
             "The five-step welcome and the tips on the toolbar",
@@ -142,10 +142,10 @@ fn behaviour(m: &Model, c: Colors) -> Vec<Element<'_, Message>> {
             c,
         ),
     ];
-    // Windows: the installer's "Start Snag when I sign in" task. Linux and macOS have no installer
+    // Windows: the installer's "Start Katch when I sign in" task. Linux and macOS have no installer
     // to ask.
     if cfg!(any(target_os = "linux", target_os = "macos")) {
-        let hint = if cfg!(target_os = "macos") { "Snag waits quietly in the menu bar, ready for links" } else { "Snag waits quietly in the tray, ready for links" };
+        let hint = if cfg!(target_os = "macos") { "Katch waits quietly in the menu bar, ready for links" } else { "Katch waits quietly in the tray, ready for links" };
         lines.insert(3, line("Start when you sign in", hint, switch(m.autostart, Message::Autostart, c), c));
     }
     lines
@@ -313,9 +313,9 @@ fn appearance(m: &Model, c: Colors) -> Element<'_, Message> {
         line(
             "Draw with the graphics card",
             if m.draft.use_gpu != m.settings.use_gpu {
-                "Takes effect the next time Snag starts"
+                "Takes effect the next time Katch starts"
             } else {
-                "Off: the processor draws Snag (about 35 MB). On: smoother on very large screens, about 150 MB more"
+                "Off: the processor draws Katch (about 35 MB). On: smoother on very large screens, about 150 MB more"
             },
             switch(m.draft.use_gpu, Message::DraftGpu, c),
             c,
@@ -371,7 +371,7 @@ fn connections(m: &Model, c: Colors) -> Element<'_, Message> {
                 ),
                 line(
                     "Keep sharing torrents",
-                    "After a torrent finishes, keep uploading it to others (off: Snag stops when done)",
+                    "After a torrent finishes, keep uploading it to others (off: Katch stops when done)",
                     switch(d.keep_sharing, Message::DraftKeepSharing, c),
                     c,
                 ),

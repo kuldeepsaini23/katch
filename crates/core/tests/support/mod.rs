@@ -80,7 +80,7 @@ fn subtitle(headers: &HeaderMap, name: &str) -> Response {
     if name.starts_with("missing") {
         return Response::builder().status(StatusCode::NOT_FOUND).body(Body::from("<html>Not found</html>")).unwrap();
     }
-    // Servers often call subtitles plain text: Snag goes by the text itself.
+    // Servers often call subtitles plain text: Katch goes by the text itself.
     Response::builder().header(header::CONTENT_TYPE, "text/plain").body(Body::from(subtitle_text(name))).unwrap()
 }
 

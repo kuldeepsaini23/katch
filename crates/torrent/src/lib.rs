@@ -124,7 +124,7 @@ pub struct EngineOptions {
 pub struct TorrentEngine {
     session: Arc<Session>,
     peers: Vec<SocketAddr>,
-    /// Torrents in the session by the caller's key (Snag uses the item's link), so `forget`
+    /// Torrents in the session by the caller's key (Katch uses the item's link), so `forget`
     /// finds exactly the right one without adding anything.
     loaded: Arc<std::sync::Mutex<std::collections::HashMap<String, usize>>>,
 }
@@ -166,7 +166,7 @@ impl TorrentEngine {
     /// Downloads into a place under `base` that holds nothing else (`placement`), or into
     /// `claimed` when this torrent already started there; until done, then stops sharing; or
     /// until `cancel` fires (paused: adding it again with its claimed folder continues it).
-    /// `key` names it for `forget` (Snag passes the item's link).
+    /// `key` names it for `forget` (Katch passes the item's link).
     pub async fn download(&self, key: &str, source: &Source, base: &Path, claimed: Option<&Path>, cancel: CancellationToken, progress: &watch::Sender<Progress>) -> Result<Outcome, String> {
         let initial_peers = (!self.peers.is_empty()).then(|| self.peers.clone());
         // First only read its file list: refuse anything that would write outside the folder.
@@ -273,7 +273,7 @@ impl TorrentEngine {
     }
 
     /// Stops and forgets the torrent under `key`, and returns once its files are released (they
-    /// stay on disk; Snag deletes them if asked). Nothing to do if it isn't loaded.
+    /// stay on disk; Katch deletes them if asked). Nothing to do if it isn't loaded.
     pub async fn forget(&self, key: &str) {
         let id = self.loaded.lock().ok().and_then(|mut l| l.remove(key));
         if let Some(id) = id {

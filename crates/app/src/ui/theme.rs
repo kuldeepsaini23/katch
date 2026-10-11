@@ -3,7 +3,7 @@
 use iced::Color;
 use iced::theme::Palette;
 
-/// Snag's copper (the logo's tile).
+/// Katch's copper (the logo's tile).
 pub const DEFAULT_ACCENT: &str = "#d9682b";
 
 /// Everything is drawn this much larger than the Figma sizes (the user picked it for readability).
@@ -254,7 +254,7 @@ pub fn tile_gradient(c: &Colors) -> (Color, Color) {
 
 pub fn theme(c: &Colors) -> iced::Theme {
     iced::Theme::custom(
-        "Snag",
+        "Katch",
         Palette { background: c.canvas, text: c.text, primary: c.accent, success: c.success, warning: c.accent, danger: c.danger },
     )
 }

@@ -194,7 +194,7 @@ pub fn present(
         surface.layer_stack.push_front(renderer.layers().to_vec());
         surface.background_color = background_color;
 
-        // Snag: redraw the whole window whenever anything changed. Upstream groups the damage
+        // Katch: redraw the whole window whenever anything changed. Upstream groups the damage
         // into many rectangles (~20 while a list scrolls) and draws every layer once per
         // rectangle, clipped: 100+ ms a frame, and missed spots between them left trails (bullet
         // dots, shadows). A full redraw needs no clipping: ~30 ms, faster even than one clipped
@@ -217,7 +217,7 @@ pub fn present(
             &damage,
             background_color,
         );
-        // Snag: frame timing for its tests (only when SNAG_RENDER_LOG names a file).
+        // Katch: frame timing for its tests (only when SNAG_RENDER_LOG names a file).
         if let Some(log) = std::env::var_os("SNAG_RENDER_LOG") {
             use std::io::Write;
             let area: f32 = damage.iter().map(|r| r.width * r.height).sum();

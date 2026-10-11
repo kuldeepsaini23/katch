@@ -58,7 +58,7 @@ pub fn gallery_name(url: &str) -> String {
 }
 
 /// An http(s) address. The only kind of picture link taken from outside (a page, the extension,
-/// yt-dlp): a `file:` or `\\host\share` one would have Snag read local files, or hand the
+/// yt-dlp): a `file:` or `\\host\share` one would have Katch read local files, or hand the
 /// Windows login to a network share.
 pub fn is_web_link(url: &str) -> bool {
     let scheme = url.split_once("://").map(|(s, _)| s);
@@ -147,7 +147,7 @@ pub struct Settings {
     pub preferred_quality: Option<MediaFormat>,
     /// Windows notifications when downloads finish or fail.
     pub notify: bool,
-    /// Look for a newer Snag on GitHub (at start, then hourly and when the window opens) and offer it.
+    /// Look for a newer Katch on GitHub (at start, then hourly and when the window opens) and offer it.
     pub check_updates: bool,
     /// Videos: fetch subtitles and embed them in the file.
     pub subtitles: bool,
@@ -206,7 +206,7 @@ pub enum ThemeMode {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            download_dir: crate::dirs::downloads().join("Snag"),
+            download_dir: crate::dirs::downloads().join("Katch"),
             sort_into_folders: true,
             connections: 8,
             max_concurrent: 3,
@@ -356,7 +356,7 @@ mod tests {
         assert!(!old.translucent);
         assert!(!old.tour_done);
         assert!(old.check_updates, "updates are looked for unless switched off");
-        assert_eq!(Settings::default().accent, "#d9682b", "Snag's copper");
+        assert_eq!(Settings::default().accent, "#d9682b", "Katch's copper");
         assert_eq!(old.animations, Animations::System, "animations follow Windows unless chosen");
         let off = Settings { animations: Animations::Off, ..Settings::default() };
         assert!(serde_json::to_string(&off).unwrap().contains(r#""animations":"off""#));
