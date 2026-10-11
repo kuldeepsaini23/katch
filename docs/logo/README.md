@@ -1,4 +1,4 @@
-# Snag's logo
+# Katch's logo
 
 - `engraving/c-gpt.png` — the chosen engraving (hook catching a download arrow), generated from the prompt in the launch notes; `a-…` and `b-…` were the alternatives.
 - `snag-engraved-1024.png` — the app icon at 48 px and up (`make_logo.py` cuts the drawing out of its orange and puts it on the rounded tile).

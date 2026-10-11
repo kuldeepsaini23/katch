@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Snag Architecture Docs</title>
+<title>Katch Architecture Docs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400;700&display=swap">
@@ -85,7 +85,7 @@ dd { margin: 0; color: var(--muted); }
 <body>
 <div class="shell">
   <nav class="toc" aria-label="Contents">
-    <div class="brand">Snag docs</div>
+    <div class="brand">Katch docs</div>
     <a href="#overview">Overview</a>
     <a href="#map">System map</a>
     <a href="#parts">The parts</a>
@@ -95,13 +95,13 @@ dd { margin: 0; color: var(--muted); }
     <a href="#bridge">Extension ↔ app API</a>
     <a href="#storage">Where things are saved</a>
     <a href="#glossary">Glossary</a>
-    <a class="back" href="index.html">← How Snag catches a video</a>
+    <a class="back" href="index.html">← How Katch catches a video</a>
   </nav>
 
   <main>
     <header style="display:grid; gap:12px">
       <div class="eyebrow">Architecture</div>
-      <h1>How Snag is built</h1>
+      <h1>How Katch is built</h1>
       <p class="lede">A Windows download manager in Rust, plus a browser extension. This page explains the pieces, how they talk to each other, and where your files and settings live.</p>
     </header>
 
@@ -110,8 +110,8 @@ dd { margin: 0; color: var(--muted); }
       <h2>Three places, one job</h2>
       <div class="cards">
         <div class="card"><span class="chip c-ext">BROWSER</span><h3>The extension</h3><p>Spots videos and files in your tabs, shows the Download button and menu, and hands links to the app.</p></div>
-        <div class="card"><span class="chip c-app">YOUR PC</span><h3>The Snag app</h3><p>One program (<code>snag.exe</code>) with the window, the tray icon and a small private server only your PC can reach.</p></div>
-        <div class="card"><span class="chip c-dl">THE INTERNET</span><h3>The websites</h3><p>Snag downloads straight from them over its own connections, with your cookies so they treat it like your browser.</p></div>
+        <div class="card"><span class="chip c-app">YOUR PC</span><h3>The Katch app</h3><p>One program (<code>snag.exe</code>) with the window, the tray icon and a small private server only your PC can reach.</p></div>
+        <div class="card"><span class="chip c-dl">THE INTERNET</span><h3>The websites</h3><p>Katch downloads straight from them over its own connections, with your cookies so they treat it like your browser.</p></div>
       </div>
     </section>
 
@@ -119,7 +119,7 @@ dd { margin: 0; color: var(--muted); }
       <div class="eyebrow">System map</div>
       <h2>Everything on one board</h2>
       <p>Arrows show who asks whom. Purple lives in the browser, orange is the app's brain and window, blue does the downloading, green is what ends up on disk.</p>
-      <div class="board min"><svg id="d-map" viewBox="0 0 1000 640" role="img" aria-label="System map of Snag"></svg></div>
+      <div class="board min"><svg id="d-map" viewBox="0 0 1000 640" role="img" aria-label="System map of Katch"></svg></div>
       <div class="caption">The extension never downloads anything itself. It only passes links to the app on 127.0.0.1.</div>
     </section>
 
@@ -160,7 +160,7 @@ dd { margin: 0; color: var(--muted); }
     <section id="streams">
       <div class="eyebrow">Streams &amp; repair</div>
       <h2>Playlists of clips</h2>
-      <p>Streaming sites send a playlist (<code>.m3u8</code>) listing hundreds of short clips. yt-dlp fetches them in order and joins them. If a site wrapped each clip in a fake picture to fool downloaders, Snag strips the wrapping afterwards so the file plays.</p>
+      <p>Streaming sites send a playlist (<code>.m3u8</code>) listing hundreds of short clips. yt-dlp fetches them in order and joins them. If a site wrapped each clip in a fake picture to fool downloaders, Katch strips the wrapping afterwards so the file plays.</p>
       <div class="board min"><svg id="d-stream" viewBox="0 0 1000 300" role="img" aria-label="A stream playlist, its clips, and the repair step"></svg></div>
     </section>
 
@@ -172,12 +172,12 @@ dd { margin: 0; color: var(--muted); }
         <thead><tr><th>Route</th><th>What it does</th></tr></thead>
         <tbody>
           <tr><td><code>GET /ping</code></td><td>“Are you there?” Answers with whether the extension is paired and the accent colour.</td></tr>
-          <tr><td><code>POST /pair</code></td><td>One-click connect: Snag asks you “Allow?”, then hands over the token. Only browser extensions may ask.</td></tr>
-          <tr><td><code>POST /add</code></td><td>Add a link. Snag decides: file, video page, image gallery or torrent.</td></tr>
+          <tr><td><code>POST /pair</code></td><td>One-click connect: Katch asks you “Allow?”, then hands over the token. Only browser extensions may ask.</td></tr>
+          <tr><td><code>POST /add</code></td><td>Add a link. Katch decides: file, video page, image gallery or torrent.</td></tr>
           <tr><td><code>POST /probe</code></td><td>Read a video page with yt-dlp and return its qualities (used by the menu and the prefetch).</td></tr>
           <tr><td><code>POST /add-media</code></td><td>Add a video in the chosen quality, with cookies and Referer. Used by NOW rows and quality rows.</td></tr>
           <tr><td><code>POST /add-batch</code></td><td>Add many links at once (“Grab all from this page”).</td></tr>
-          <tr><td><code>POST /focus</code>, <code>/quit</code></td><td>Bring the window forward; close Snag cleanly.</td></tr>
+          <tr><td><code>POST /focus</code>, <code>/quit</code></td><td>Bring the window forward; close Katch cleanly.</td></tr>
         </tbody>
       </table></div>
     </section>
@@ -185,7 +185,7 @@ dd { margin: 0; color: var(--muted); }
     <section id="storage">
       <div class="eyebrow">Where things are saved</div>
       <h2>Your disk</h2>
-      <div class="board min"><svg id="d-storage" viewBox="0 0 1000 330" role="img" aria-label="Folders Snag uses"></svg></div>
+      <div class="board min"><svg id="d-storage" viewBox="0 0 1000 330" role="img" aria-label="Folders Katch uses"></svg></div>
       <dl>
         <dt>state.json</dt><dd>The download list, queues and settings. Written safely (temp file, then swap).</dd>
         <dt>snag.log</dt><dd>Errors and notices, kept under 1 MB. Handy for bug reports.</dd>
@@ -201,7 +201,7 @@ dd { margin: 0; color: var(--muted); }
       <dl>
         <dt>Sniffer</dt><dd>The part of the extension that looks at the addresses tabs load and keeps the ones that are media.</dd>
         <dt>Referer</dt><dd>“I came from this page.” Many video servers only answer requests that say they come from their own player.</dd>
-        <dt>Cookies</dt><dd>Small notes your browser keeps for each site, like “logged in as you”. Snag borrows them so private or age-restricted videos work.</dd>
+        <dt>Cookies</dt><dd>Small notes your browser keeps for each site, like “logged in as you”. Katch borrows them so private or age-restricted videos work.</dd>
         <dt>HLS / .m3u8</dt><dd>A streaming format: a playlist plus many short clips.</dd>
         <dt>Range request</dt><dd>Asking a server for only part of a file (“bytes 15,000,000 to 29,999,999”). This is what makes parallel parts possible.</dd>
         <dt>Pairing token</dt><dd>A secret shared once between the extension and the app, so only your extension can add downloads.</dd>
@@ -281,7 +281,7 @@ dd { margin: 0; color: var(--muted); }
     k.box(45, 240, 280, 64, "Popup · Grab all · right-click", "popup.js · grab.js", "--violet");
     k.text(185, 350, "video player loads streams →", { size: 15, color: css("--muted") });
 
-    k.frame(420, 20, 560, 420, "Snag app (snag.exe)", "--accent");
+    k.frame(420, 20, 560, 420, "Katch app (snag.exe)", "--accent");
     k.box(450, 60, 220, 70, "Bridge", "127.0.0.1:47321", "--accent");
     k.box(720, 60, 230, 70, "Window + tray", "iced UI · notifications", "--accent");
     k.box(560, 175, 260, 76, "Manager (core)", "list · queues · retries · cookies", "--accent");
@@ -302,7 +302,7 @@ dd { margin: 0; color: var(--muted); }
     k.arrow(525, 370, 300, 500, "own connections + your cookies", { color: "--blue", dy: 26, bend: 30 });
     k.arrow(185, 465, 185, 385, "", { color: "--violet" });
 
-    k.box(700, 505, 270, 90, "Your disk", "Downloads\\Snag · %APPDATA%\\Snag", "--green");
+    k.box(700, 505, 270, 90, "Your disk", "Downloads\\Katch · %APPDATA%\\Snag", "--green");
     k.arrow(695, 370, 790, 505, "files", { color: "--green", dy: 4 });
     k.arrow(690, 251, 720, 505, "", { color: "--green", bend: 60 });
     k.box(430, 520, 200, 64, "Phone page", "Wi-Fi :47330 (opt-in)", "--accent");
@@ -311,7 +311,7 @@ dd { margin: 0; color: var(--muted); }
 
   function drawFlow() {
     const k = kit(document.getElementById("d-flow"));
-    const lanes = [["Website", 120, "--blue"], ["Browser tab", 360, "--violet"], ["Extension", 600, "--violet"], ["Snag app", 860, "--accent"]];
+    const lanes = [["Website", 120, "--blue"], ["Browser tab", 360, "--violet"], ["Extension", 600, "--violet"], ["Katch app", 860, "--accent"]];
     lanes.forEach(([name, x, c]) => {
       k.box(x - 90, 16, 180, 50, name, "", c);
       if (k.rc) k.add(k.rc.line(x, 70, x, 545, k.opts({ stroke: css("--line"), strokeLineDash: [6, 8], roughness: 0.6 })));
@@ -377,7 +377,7 @@ dd { margin: 0; color: var(--muted); }
     [["state.json", "list · queues · settings"], ["snag.log", "errors, last 1 MB"], ["bin\\", "yt-dlp · gallery-dl"], ["cookies\\", "temporary, auto-deleted"]].forEach(([a, b], i) => {
       k.box(45 + (i % 2) * 210, 60 + Math.floor(i / 2) * 120, 190, 90, a, b, "--green");
     });
-    k.frame(520, 20, 460, 290, "Downloads\\Snag", "--blue");
+    k.frame(520, 20, 460, 290, "Downloads\\Katch", "--blue");
     [["Videos", "mp4 · ts"], ["Music", "mp3"], ["Images", "galleries"], ["Archives · Documents · Programs", ""]].forEach(([a, b], i) => {
       if (i < 3) k.box(545 + i * 145, 60, 130, 80, a, b, "--blue");
       else k.box(545, 170, 420, 70, a, "sorted by type", "--blue");
