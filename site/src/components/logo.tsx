@@ -11,9 +11,9 @@ export function LogoMark({ size = 24, className }: { size?: number; className?: 
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2.5 rounded-lg", className)} aria-label="Snag home">
+    <Link href="/" className={cn("flex items-center gap-2.5 rounded-lg", className)} aria-label="Katch home">
       <LogoMark size={28} />
-      <span className="text-lg font-bold tracking-tight">Snag</span>
+      <span className="text-lg font-bold tracking-tight">Katch</span>
     </Link>
   );
 }

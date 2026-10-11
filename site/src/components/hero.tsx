@@ -34,7 +34,7 @@ export function Hero() {
 
         <div className="relative pt-8 sm:pt-12 lg:pt-24 lg:pr-[24rem]">
           <p className="label">
-            {VERSION ? `Vol. ${VERSION}` : "Snag"} · Windows · macOS · Linux
+            {VERSION ? `Vol. ${VERSION}` : "Katch"} · Windows · macOS · Linux
           </p>
           <p className="label mt-1.5 max-w-[11rem] normal-case tracking-normal sm:max-w-none">
             <span className="font-display text-sm italic">Pl. I — the hook and the arrow</span>
@@ -71,7 +71,7 @@ export function Hero() {
               />
               <img
                 src="/images/app-1280.webp"
-                alt="Snag’s main window: a library of downloads by type, three downloads in progress with one at 8.4 MB/s, and the details of the selected video"
+                alt="Katch’s main window: a library of downloads by type, three downloads in progress with one at 8.4 MB/s, and the details of the selected video"
                 width={1280}
                 height={800}
                 loading="lazy"
@@ -84,7 +84,7 @@ export function Hero() {
             {/* eslint-disable-next-line @next/next/no-img-element -- static export, a 1x capture at its own size */}
             <img
               src="/images/ext-popup-panel-350.webp"
-              alt="The browser extension’s popup: connected to Snag, catching downloads, the media found on the page, and buttons to download or save the page"
+              alt="The browser extension’s popup: connected to Katch, catching downloads, the media found on the page, and buttons to download or save the page"
               width={350}
               height={640}
               loading="lazy"
@@ -93,7 +93,7 @@ export function Hero() {
           </div>
         </div>
         <figcaption className="mt-16 font-display sm:max-w-[58%] text-[0.95rem] leading-snug text-muted italic sm:mt-20">
-          <span className="text-text">Fig. 1</span> — Snag’s main window, three downloads under way; over it, the
+          <span className="text-text">Fig. 1</span> — Katch’s main window, three downloads under way; over it, the
           browser extension’s popup.
         </figcaption>
       </figure>

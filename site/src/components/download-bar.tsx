@@ -149,7 +149,7 @@ export function DownloadBar({
           "min-[1200px]:[grid-template-areas:'logo_brand_nav_seg_th_gh_dl'_'logo_lab_nav_pct_th_gh_dl']",
         ].join(" ")}
       >
-        <Link href="/" aria-label="Snag home" className="[grid-area:logo] self-center">
+        <Link href="/" aria-label="Katch home" className="[grid-area:logo] self-center">
           <LogoMark size={32} className="size-8 shadow-[0_0_0_1px_var(--hairline)]" />
         </Link>
         <Link
@@ -158,7 +158,7 @@ export function DownloadBar({
           aria-hidden="true"
           className="hidden self-end font-display text-[1.35rem] leading-none tracking-tight italic [grid-area:brand] sm:block"
         >
-          Snag
+          Katch
         </Link>
 
         {/* The part you are in, and the contents of the page behind it. */}
@@ -274,7 +274,7 @@ export function DownloadBar({
 
         <ExternalLink
           href={repoUrl}
-          aria-label="Snag on GitHub (opens in a new tab)"
+          aria-label="Katch on GitHub (opens in a new tab)"
           className="hidden size-9 items-center justify-center self-center rounded-full text-muted shadow-[inset_0_0_0_1px_var(--hairline)] transition-[color,box-shadow] [grid-area:gh] hover:text-text hover:shadow-[inset_0_0_0_1px_var(--accent)] sm:flex"
         >
           <GithubLogo weight="fill" className="size-[18px]" aria-hidden />

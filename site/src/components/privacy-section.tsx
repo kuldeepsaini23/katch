@@ -98,9 +98,9 @@ export function PrivacySection() {
         />
 
         <div className="mt-14 grid gap-x-14 gap-y-16 md:mt-20 lg:grid-cols-[1.1fr_1fr]">
-          {/* Styled after the last card of Snag's first-run tour. */}
+          {/* Styled after the last card of Katch's first-run tour. */}
           <div data-reveal>
-            <h3 className="font-display text-3xl italic">You decide what Snag may use</h3>
+            <h3 className="font-display text-3xl italic">You decide what Katch may use</h3>
             <p className="mt-2 text-muted">Change any of these later in Settings.</p>
             <ul className="mt-6 border-t border-text">
               {switches.map(({ icon: Icon, title, body, on }) => (
@@ -128,14 +128,14 @@ export function PrivacySection() {
             </ul>
           </div>
 
-          {/* Every connection Snag makes. There is no line to a Snag server because there isn't one. */}
+          {/* Every connection Katch makes. There is no line to a Katch server because there isn't one. */}
           <div data-reveal>
             <h3 className="font-display text-3xl italic">Where your data goes</h3>
-            <p className="mt-2 text-muted">The extension talks only to Snag on this computer, after you press Allow.</p>
+            <p className="mt-2 text-muted">The extension talks only to Katch on this computer, after you press Allow.</p>
             <div
               className="relative mt-8"
               role="img"
-              aria-label="The browser extension and the sites you download from connect only to Snag on your PC at 127.0.0.1, which saves files to your own disk."
+              aria-label="The browser extension and the sites you download from connect only to Katch on your PC at 127.0.0.1, which saves files to your own disk."
             >
               <div className="grid grid-cols-2 gap-3">
                 <Node icon={Browser} title="Extension" detail="in your browser" />
@@ -146,7 +146,7 @@ export function PrivacySection() {
                 <Wire />
               </div>
               <div className="mx-auto max-w-xs">
-                <Node title="Snag" detail="127.0.0.1 · this PC" accent />
+                <Node title="Katch" detail="127.0.0.1 · this PC" accent />
               </div>
               <Wire />
               <div className="mx-auto max-w-xs">
@@ -155,24 +155,24 @@ export function PrivacySection() {
             </div>
             {/* Set like a rubber stamp on the notice. */}
             <p className="mx-auto mt-10 w-fit -rotate-3 border-[3px] border-double border-accent-text px-4 py-1.5 font-mono text-sm tracking-[0.18em] text-accent-text uppercase">
-              Snag servers: none
+              Katch servers: none
             </p>
           </div>
         </div>
 
         <div className="mt-20 grid items-center gap-x-14 gap-y-8 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]" data-reveal>
-          <Plate window fig={5} caption="the first-run tour’s last card, the first time Snag opens.">
+          <Plate window fig={5} caption="the first-run tour’s last card, the first time Katch opens.">
             <Shot
               name="permissions"
               widths={[720, 1382]}
               height={864}
               sizes="(min-width: 1152px) 660px, (min-width: 768px) 58vw, calc(100vw - 32px)"
-              alt="Snag’s first-run tour: switches for copied links, notifications and phone sharing, and what Snag does with cookies, the internet and the safety check"
+              alt="Katch’s first-run tour: switches for copied links, notifications and phone sharing, and what Katch does with cookies, the internet and the safety check"
             />
           </Plate>
           <div>
             <p className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-[1.05] tracking-tight italic">
-              The real thing: the first time you open Snag, it asks.
+              The real thing: the first time you open Katch, it asks.
             </p>
             <Link
               href="/privacy/"

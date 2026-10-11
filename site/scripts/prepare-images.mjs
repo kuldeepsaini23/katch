@@ -163,7 +163,7 @@ const svg = `
   <rect width="100%" height="100%" fill="#0b0b0c"/>
   <rect x="24" y="24" width="${W - 48}" height="${H - 48}" fill="none" stroke="#efe9dc" stroke-opacity="0.22"/>
   <rect x="30" y="30" width="${W - 60}" height="${H - 60}" fill="none" stroke="#efe9dc" stroke-opacity="0.12"/>
-  <text x="72" y="104" font-family="Consolas, monospace" font-size="20" letter-spacing="3" fill="#d9682b">SNAG · FOR WINDOWS</text>
+  <text x="72" y="104" font-family="Consolas, monospace" font-size="20" letter-spacing="3" fill="#d9682b">KATCH · WINDOWS · MACOS · LINUX</text>
   <text x="72" y="236" font-family="Segoe UI, Arial, sans-serif" font-size="92" font-weight="600" letter-spacing="-3" fill="#efe9dc">Download</text>
   <text x="72" y="336" font-family="Georgia, serif" font-style="italic" font-size="100" fill="#efe9dc">anything.</text>
   <text font-family="Segoe UI, Arial, sans-serif" font-size="27" fill="#b5afa3">
@@ -171,7 +171,7 @@ const svg = `
     <tspan x="72" y="458">Catches any video like IDM,</tspan>
     <tspan x="72" y="496">downloads files 8× in parallel.</tspan>
   </text>
-  <text x="72" y="568" font-family="Consolas, monospace" font-size="20" letter-spacing="1" fill="#efe9dc" fill-opacity="0.7">snag.kuldeepsaini.dev</text>
+  <text x="72" y="568" font-family="Consolas, monospace" font-size="20" letter-spacing="1" fill="#efe9dc" fill-opacity="0.7">katch.kuldeepsaini.dev</text>
 </svg>`;
 await sharp(Buffer.from(svg))
   .composite([

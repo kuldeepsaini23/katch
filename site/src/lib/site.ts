@@ -2,12 +2,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-export const SITE_URL = "https://snag.kuldeepsaini.dev";
-export const REPO_URL = "https://github.com/kuldeepsaini23/snag";
+export const SITE_URL = "https://katch.kuldeepsaini.dev";
+export const REPO_URL = "https://github.com/kuldeepsaini23/katch";
 export const RELEASES_URL = `${REPO_URL}/releases`;
 export const ISSUES_URL = `${REPO_URL}/issues`;
 // Every release carries the installer under this stable name too, so the link never goes stale.
-export const DOWNLOAD_URL = `${REPO_URL}/releases/latest/download/Snag-Setup.exe`;
+export const DOWNLOAD_URL = `${REPO_URL}/releases/latest/download/Katch-Setup.exe`;
 
 export const PITCH =
   "The fast, free download manager for Windows, macOS and Linux — catches any video like IDM, downloads files 8× in parallel";
@@ -26,4 +26,4 @@ function readVersion(): string | null {
 }
 
 export const VERSION = readVersion();
-export const INSTALLER_NAME = VERSION ? `Snag-Setup-${VERSION}.exe` : "Snag-Setup.exe";
+export const INSTALLER_NAME = VERSION ? `Katch-Setup-${VERSION}.exe` : "Katch-Setup.exe";
