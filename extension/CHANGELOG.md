@@ -2,6 +2,16 @@
 
 Newest first. The desktop app has its own list in the repository's CHANGELOG.md.
 
+## 1.2.0
+
+The first store release since 1.0.3: it also brings everything in 1.1.0 below (subtitles with sniffed videos), which never went to the stores on its own.
+
+- Turn Snag off on any site: the popup opens with a "Snag on youtube.com" switch. Off means no Download button on that site's pages, nothing picked up from what they play, and the downloads they start stay in the browser. It covers the whole site (www., m. and other subdomains) and takes effect at once, without reloading the page; when switching back on, reload the page if a video was already playing so Snag sees it.
+- "Pause Snag everywhere" in the popup does the same on every site. The toolbar icon shows "off" while Snag is paused, and on a site it's off on.
+- A new options page (the extension's Options in Chrome and Edge, Preferences in Firefox, or "Sites Snag is off on…" at the bottom of the popup) lists the sites Snag is off on, each with a Turn on button, and has the pause switch.
+- These settings follow you to your other computers when the browser syncs extension data.
+- Right-click "Download with Snag" and the popup's own buttons still work everywhere: they only run when you ask.
+
 ## 1.1.0
 
 - Subtitles come with sniffed videos: when a page's player loads its captions as separate files (.vtt, .srt, .ass), and when the page lists them as subtitle tracks, the extension sends them to Snag along with the stream, from the Download button on the page and from the popup. Snag saves them next to the video under the video's name (for example `Movie.en.vtt`), so VLC, mpv and other players show them; with Subtitles switched on in Snag's settings they also go inside the video. Needs a Snag version that supports it; older ones download the video as before.
