@@ -57,7 +57,8 @@ class FakeNode {
   }
 }
 
-function page(href) {
+/** `sync`: what chrome.storage.sync holds (the sites Snag is off on, paused). */
+function page(href, { sync } = {}) {
   const sent = [];
   const storageListeners = [];
   let tick = null;
@@ -97,6 +98,7 @@ function page(href) {
     },
     storage: {
       local: { get: async () => ({}), set: async () => {} },
+      ...(sync ? { sync: { get: async () => sync, set: async () => {} } } : {}),
       onChanged: { addListener: (fn) => storageListeners.push(fn) },
     },
   };
@@ -111,7 +113,7 @@ function page(href) {
     setInterval: (fn) => ((tick = fn), 1),
     clearInterval: () => {},
   });
-  for (const file of ["catch-rules.js", "quality.js", "pill.js", "content.js"]) {
+  for (const file of ["catch-rules.js", "quality.js", "pill.js", "site-toggle.js", "content.js"]) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   }
   const flush = () => new Promise((r) => setImmediate(r));
@@ -167,4 +169,23 @@ test("the button's host can't be restyled by the page and ignores clicks a scrip
   pill.dispatch("click", { isTrusted: true });
   await p.flush();
   assert.ok(p.sent.includes("status"), "the user's click opens the menu");
+});
+
+test("no button on a site Snag is off on; it comes back when turned on, without a reload", async () => {
+  const sync = { offSites: ["youtube.com"] };
+  const p = page("https://m.youtube.com/watch?v=1", { sync });
+  await p.flush();
+  p.tick();
+  assert.strictEqual(p.host(), null, "off on youtube.com covers m.youtube.com");
+  assert.ok(!p.sent.includes("prefetch"), "Snag isn't asked to read the page");
+
+  sync.offSites = [];
+  for (const fn of p.storageListeners) fn({ offSites: { newValue: [] } }, "sync");
+  await p.flush();
+  assert.ok(p.host(), "on again: the button is back");
+
+  sync.paused = true;
+  for (const fn of p.storageListeners) fn({ paused: { newValue: true } }, "sync");
+  await p.flush();
+  assert.strictEqual(p.host(), null, "paused everywhere: gone again");
 });

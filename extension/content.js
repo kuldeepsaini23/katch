@@ -271,16 +271,27 @@
   }
   // Known video pages only (never just because something played), once the address settles.
   const prefetch = new PrefetchPlan(1500, isVideoPage);
-  let hiddenSites = [];
+  // Both unknown (null) until read: the button waits rather than flashing up on a site it's off on.
+  let hiddenSites = null;
+  // Snag off on this site, or paused everywhere (site-toggle.js): no button, no prefetch.
+  let siteToggle = null;
+  const readSiteToggle = () =>
+    loadSiteToggle(chrome.storage).then((t) => {
+      siteToggle = t;
+      sync();
+    });
   chrome.storage.local.get(["hiddenSites"]).then((s) => {
     hiddenSites = s.hiddenSites || [];
     sync();
   });
+  readSiteToggle();
   chrome.storage.onChanged.addListener((changes) => {
     if (changes.hiddenSites) {
       hiddenSites = changes.hiddenSites.newValue || [];
       sync();
     }
+    // Turned off or on from the popup or the options page: the button goes or comes back now.
+    if (SITE_TOGGLE_KEYS.some((k) => k in changes)) readSiteToggle();
     if (!button) return;
     if (changes.buttonCorner) button.place(changes.buttonCorner.newValue);
     if (changes.accent) button.host.style.setProperty("--accent", safeAccent(changes.accent.newValue));
@@ -293,7 +304,7 @@
       lastUrl = location.href;
       mediaSeen = 0;
     }
-    const hidden = isHiddenOn(location.hostname, hiddenSites);
+    const hidden = !hiddenSites || !siteToggle || isHiddenOn(location.hostname, hiddenSites) || !isEnabled(location.hostname, siteToggle);
     const on = (isVideoPage(location.hostname, location.pathname) || mediaSeen > 0) && !hidden;
     show(on);
     // Snag starts reading the page now, so the qualities are ready by the time you click.

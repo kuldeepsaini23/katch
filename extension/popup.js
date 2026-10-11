@@ -33,14 +33,63 @@ function mediaName(item) {
   }
 }
 
+/** The tab's web host, or "" when it isn't a web page. */
+function hostOf(tab) {
+  try {
+    return tab && /^https?:/.test(tab.url) ? new URL(tab.url).hostname : "";
+  } catch (_) {
+    return "";
+  }
+}
+
+/** The switches at the top: Snag on this tab's site, and paused everywhere. */
+async function siteSwitches(tab) {
+  const host = hostOf(tab);
+  const render = async () => {
+    const s = await loadSiteToggle(chrome.storage);
+    const site = (host && offEntryFor(host, s.offSites)) || siteOf(host);
+    const siteOn = !host || !offEntryFor(host, s.offSites);
+    $("site-name").textContent = host ? `Snag on ${site}` : "Snag on this page";
+    $("site-switch").disabled = !host;
+    $("site-switch").setAttribute("aria-checked", String(siteOn));
+    $("site-hint").textContent = host ? "Download button, media list, catching downloads" : "Not a web page";
+    $("pause-switch").setAttribute("aria-checked", String(s.paused));
+    const off = host ? !isEnabled(host, s) : s.paused;
+    document.body.classList.toggle("off", off);
+    $("off-note").textContent = s.paused
+      ? "Snag is paused: no Download buttons, nothing picked up from pages, downloads stay in the browser."
+      : `Off on ${site}: no Download button, nothing picked up from its pages, its downloads stay in the browser.`;
+    return off;
+  };
+  // Switched back on: what the page played while off wasn't picked up.
+  const changed = async (wasOff) => {
+    const off = await render();
+    if (wasOff && !off) say("On again. Reload the page if a video was already playing.");
+    else say("");
+    if (tab) showMedia(tab);
+  };
+  $("site-switch").addEventListener("click", async () => {
+    const s = await loadSiteToggle(chrome.storage);
+    const wasOff = !isEnabled(host, s);
+    const on = $("site-switch").getAttribute("aria-checked") !== "true";
+    await saveSiteToggle(chrome.storage, { offSites: on ? turnOn(s.offSites, host) : turnOff(s.offSites, host) });
+    changed(wasOff);
+  });
+  $("pause-switch").addEventListener("click", async () => {
+    const s = await loadSiteToggle(chrome.storage);
+    await saveSiteToggle(chrome.storage, { paused: !s.paused });
+    changed(host ? !isEnabled(host, s) : s.paused);
+  });
+  $("options").addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
+    window.close();
+  });
+  await render();
+}
+
 /** Where the page button sits, and the sites it stays off. */
 async function buttonSettings(tab) {
-  let host = "";
-  try {
-    host = tab && /^https?:/.test(tab.url) ? new URL(tab.url).hostname : "";
-  } catch (_) {
-    // Not a web page.
-  }
+  const host = hostOf(tab);
   const render = async () => {
     const { hiddenSites = [], buttonCorner = "bottom-right" } = await chrome.storage.local.get(["hiddenSites", "buttonCorner"]);
     $("corner").value = buttonCorner;
@@ -203,6 +252,7 @@ async function init() {
 
   refreshStatus();
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  await siteSwitches(tab);
   if (tab) showMedia(tab);
   buttonSettings(tab);
 }
