@@ -1,7 +1,7 @@
 name: macOS
 
-# Builds and tests Snag on macOS, and packages Snag.app (universal) as Snag-macOS.zip and
-# Snag-macOS.dmg workflow artifacts (to try a branch on a Mac before it's released).
+# Builds and tests Katch on macOS, and packages Katch.app (universal) as Katch-macOS.zip and
+# Katch-macOS.dmg workflow artifacts (to try a branch on a Mac before it's released).
 # Releases: release.yml.
 on:
   push:
@@ -32,14 +32,14 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
-      - name: Build Snag.app, the zip and the disk image
+      - name: Build Katch.app, the zip and the disk image
         run: bash packaging/macos/build.sh
 
       - uses: actions/upload-artifact@v4
         with:
-          name: snag-macos
+          name: katch-macos
           path: |
-            target/macos/Snag-macOS.zip
-            target/macos/Snag-macOS.dmg
+            target/macos/Katch-macOS.zip
+            target/macos/Katch-macOS.dmg
             target/macos/SHA256SUMS-macos-*.txt
           if-no-files-found: error

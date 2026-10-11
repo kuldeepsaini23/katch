@@ -1,6 +1,6 @@
 name: Linux
 
-# Builds and tests Snag on Linux, and packages the AppImage and the .deb as workflow artifacts
+# Builds and tests Katch on Linux, and packages the AppImage and the .deb as workflow artifacts
 # (to try a branch on a Linux machine before it's released). Releases: release.yml.
 on:
   push:
@@ -41,9 +41,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: snag-linux
+          name: katch-linux
           path: |
-            target/linux/Snag-x86_64.AppImage
-            target/linux/snag_*_amd64.deb
+            target/linux/Katch-x86_64.AppImage
+            target/linux/katch_*_amd64.deb
             target/linux/SHA256SUMS-linux-*.txt
           if-no-files-found: error

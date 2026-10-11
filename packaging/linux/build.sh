@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Builds the Linux release into target/linux/: Snag-x86_64.AppImage and snag_<version>_amd64.deb.
+# Builds the Linux release into target/linux/: Katch-x86_64.AppImage and katch_<version>_amd64.deb,
+# plus Snag-x86_64.AppImage, a copy for Snag 1.1.3 and older to update from (RELEASE-ALIASES.md).
 # Build on Ubuntu 22.04 (its glibc is the oldest the binaries run on) with:
 #   apt install build-essential pkg-config curl file libxkbcommon-x11-0
 #   cargo install cargo-deb --locked
@@ -14,9 +15,9 @@ mkdir -p "$out" "$tools"
 cargo build --release -p rdm-app
 
 # .deb: [package.metadata.deb] in crates/app/Cargo.toml (binary, .desktop file, icons).
-cargo deb -p rdm-app --no-build --no-strip --output "$out/snag_${version}_amd64.deb"
+cargo deb -p rdm-app --no-build --no-strip --output "$out/katch_${version}_amd64.deb"
 
-# AppImage: linuxdeploy copies in the libraries Snag needs. (No GTK: the tray icon talks D-Bus
+# AppImage: linuxdeploy copies in the libraries Katch needs. (No GTK: the tray icon talks D-Bus
 # itself, the folder picker asks the desktop portal.)
 fetch() {
   [ -s "$tools/$2" ] || curl -fsSL --retry 3 -o "$tools/$2" "$1"
@@ -37,7 +38,7 @@ done
 # No FUSE in containers and CI runners: the tools unpack themselves instead.
 export APPIMAGE_EXTRACT_AND_RUN=1
 # The name the updater looks for (crates/core/src/selfupdate.rs: APPIMAGE).
-export LDAI_OUTPUT="$out/Snag-x86_64.AppImage" OUTPUT="$out/Snag-x86_64.AppImage"
+export LDAI_OUTPUT="$out/Katch-x86_64.AppImage" OUTPUT="$out/Katch-x86_64.AppImage"
 export ARCH=x86_64 VERSION="$version"
 rm -f "$LDAI_OUTPUT"
 # The window's keyboard libraries are loaded at run time (dlopen), so linuxdeploy can't see them:
@@ -57,5 +58,8 @@ PATH="$PWD/$tools:$PATH" "$tools/linuxdeploy-x86_64.AppImage" \
   --icon-file "$appdir/usr/share/icons/hicolor/256x256/apps/snag.png" \
   --output appimage
 
-(cd "$out" && sha256sum "Snag-x86_64.AppImage" "snag_${version}_amd64.deb" | tee "SHA256SUMS-linux-$version.txt")
-ls -la "$out/Snag-x86_64.AppImage" "$out/snag_${version}_amd64.deb"
+# The name the updater of Snag 1.1.3 and older looks for (crates/core/src/selfupdate.rs: OLD_APPIMAGE).
+cp "$out/Katch-x86_64.AppImage" "$out/Snag-x86_64.AppImage"
+
+(cd "$out" && sha256sum "Katch-x86_64.AppImage" "Snag-x86_64.AppImage" "katch_${version}_amd64.deb" | tee "SHA256SUMS-linux-$version.txt")
+ls -la "$out/Katch-x86_64.AppImage" "$out/Snag-x86_64.AppImage" "$out/katch_${version}_amd64.deb"
