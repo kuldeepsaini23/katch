@@ -2,6 +2,8 @@
 
 Copy-paste material for the Chrome Web Store, Microsoft Edge Add-ons and Firefox Add-ons.
 
+New versions go to all three stores automatically when a release is published: see [AUTOMATIC-UPLOADS.md](AUTOMATIC-UPLOADS.md) for the keys that needs.
+
 - **Packages:** `snag-chrome-<version>.zip` (Chrome, Edge) and `snag_download_manager-<version>.zip` (Firefox), from `target/store/` after `bash installer/build.sh`, or attached to the GitHub release.
 - **Privacy policy URL:** https://snag.kuldeepsaini.dev/privacy (the stores were first given https://github.com/kuldeepsaini23/snag/blob/master/PRIVACY.md; both stay in sync)
 - **Homepage:** https://snag.kuldeepsaini.dev
