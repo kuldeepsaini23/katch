@@ -1,5 +1,5 @@
 //! After-download rules: when a finished download matches (by extension, site or category),
-//! Snag converts it to MP3, shrinks a video, unpacks an archive or moves the file.
+//! Katch converts it to MP3, shrinks a video, unpacks an archive or moves the file.
 
 use crate::Category;
 use serde::{Deserialize, Serialize};
@@ -178,7 +178,7 @@ fn extract(archive: &Path, out: &Path) -> Result<(), String> {
             sevenz_rust::default_entry_extract_fn(entry, reader, dest)
         })
         .map_err(|e| format!("not a readable 7z: {e}")),
-        _ => Err(format!("Snag can unpack .zip and .7z, not .{ext}")),
+        _ => Err(format!("Katch can unpack .zip and .7z, not .{ext}")),
     }
 }
 

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-// Snag's segment map on a loop: one file in eight parts that download side by side, each at its
+// Katch's segment map on a loop: one file in eight parts that download side by side, each at its
 // own pace; a file comes down, finishes, and the next one starts. The parts still to come are
 // hatched, like the shading of an engraving.
 const loop = [3.2, 4.1, 2.6, 4.6, 3.6, 2.9, 4.3, 3.4];

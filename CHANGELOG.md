@@ -1,6 +1,16 @@
-# What's new in Snag
+# What's new in Katch
 
-Newest first. Snag shows the newest entry once after an update; the Help menu (?) has the full list.
+Newest first. Katch (called Snag up to 1.1.3) shows the newest entry once after an update; the Help menu (?) has the full list.
+
+## 2.0.0 — 2026-10-12
+
+### New
+- Snag is now Katch. Same app, same hook, a new name: your settings, downloads and history are all still here.
+- Turn Katch off on any site: the browser extension (2.0.0) has a "Katch on this site" switch and a "Pause Katch everywhere" switch, and its options page lists the sites you turned off.
+- Subtitles from video pages now come with the extension too (they were in 1.1.3's app, the extension catches up).
+
+### Improved
+- New installs download to Downloads\Katch. If you already picked a folder, it stays.
 
 ## 1.1.3 — 2026-10-11
 

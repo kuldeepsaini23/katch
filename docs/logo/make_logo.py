@@ -1,4 +1,4 @@
-"""Builds Snag's engraved logo set from docs/logo/engraving/c-gpt.png.
+"""Builds Katch's engraved logo set from docs/logo/engraving/c-gpt.png.
 
 Outputs into OUT: subject.png (hook + arrow, transparent), and tiles at every size.
 """
@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 SRC, OUT = sys.argv[1], sys.argv[2]
-# The tile: Snag's copper brand colour (the art itself was drawn on orange and is cut out of it).
+# The tile: Katch's copper brand colour (the art itself was drawn on orange and is cut out of it).
 TILE = (217, 104, 43, 255)
 
 im = np.asarray(Image.open(SRC).convert("RGB")).astype(np.float32)

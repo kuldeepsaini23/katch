@@ -5,7 +5,7 @@ const base = require("../manifest.json");
 
 test("firefox manifest runs the background as scripts, catch rules first", () => {
   const ff = firefoxManifest(base);
-  assert.deepStrictEqual(ff.background, { scripts: ["catch-rules.js", "sniffer.js", "quality.js", "later.js", "connect.js", "background.js"] });
+  assert.deepStrictEqual(ff.background, { scripts: ["catch-rules.js", "sniffer.js", "quality.js", "later.js", "connect.js", "site-toggle.js", "background.js"] });
   assert.strictEqual(ff.background.service_worker, undefined);
 });
 
@@ -17,7 +17,7 @@ test("firefox manifest has an add-on id and declares no data collection", () => 
 
 test("everything else is the same as the chrome manifest", () => {
   const ff = firefoxManifest(base);
-  for (const key of ["name", "version", "permissions", "host_permissions", "action", "content_scripts"]) {
+  for (const key of ["name", "version", "permissions", "host_permissions", "action", "options_ui", "content_scripts"]) {
     assert.deepStrictEqual(ff[key], base[key], key);
   }
   assert.deepStrictEqual(base.background, { service_worker: "background.js" }, "the chrome manifest is untouched");
@@ -37,7 +37,7 @@ test("build writes both browser folders", () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "rdm-ext-"));
   require("../build.js").build(out);
   for (const target of ["chrome", "firefox"]) {
-    for (const f of ["manifest.json", "background.js", "catch-rules.js", "sniffer.js", "connect.js", "content.js", "popup.html", "popup.js"]) {
+    for (const f of ["manifest.json", "background.js", "catch-rules.js", "sniffer.js", "connect.js", "site-toggle.js", "content.js", "popup.html", "popup.js", "options.html", "options.js"]) {
       assert.ok(fs.existsSync(path.join(out, target, f)), `${target}/${f}`);
     }
   }

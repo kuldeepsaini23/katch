@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Builds the macOS release into target/macos/: Snag.app (universal: Apple silicon and Intel),
-# Snag-macOS.zip (what Snag's updater installs) and Snag-macOS.dmg (drag Snag to Applications).
+# Builds the macOS release into target/macos/: Katch.app (universal: Apple silicon and Intel),
+# Katch-macOS.zip (what Katch's updater installs) and Katch-macOS.dmg (drag Katch to Applications),
+# plus Snag-macOS.zip, a copy for Snag 1.1.3 and older to update from (RELEASE-ALIASES.md).
 # Run on a Mac with Xcode's command line tools (xcode-select --install) and both Rust targets:
 #   rustup target add aarch64-apple-darwin x86_64-apple-darwin
 # SNAG_TOOLS_DIR=<folder> also puts the yt-dlp, gallery-dl, ffmpeg and ffprobe found there into
-# Snag.app/Contents/Resources/bin (Snag uses those before downloading its own).
+# Katch.app/Contents/Resources/bin (Katch uses those before downloading its own).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 version=$(grep -m1 '^version' Cargo.toml | sed -E 's/.*"(.*)".*/\1/')
 out=target/macos
-app="$out/Snag.app"
+app="$out/Katch.app"
 rm -rf "$out"
 mkdir -p "$out"
 
@@ -28,7 +29,7 @@ printf 'APPL????' > "$app/Contents/PkgInfo"
 
 # The icon: the logo on macOS's icon grid (packaging/macos/icon-*.png, from docs/logo), the bold
 # mark at the two smallest sizes where the engraving's fine lines blur.
-iconset="$out/Snag.iconset"
+iconset="$out/Katch.iconset"
 mkdir -p "$iconset"
 icon() { # <pixels> <file name>
   local src=packaging/macos/icon-1024.png
@@ -59,15 +60,18 @@ codesign --force --deep --sign - "$app"
 codesign --verify --deep --strict "$app"
 
 # The zip keeps the bundle as it is (ditto: permissions, symlinks, the signature).
-ditto -c -k --sequesterRsrc --keepParent "$app" "$out/Snag-macOS.zip"
+ditto -c -k --sequesterRsrc --keepParent "$app" "$out/Katch-macOS.zip"
+# The name the updater of Snag 1.1.3 and older looks for (crates/core/src/selfupdate.rs: OLD_MAC_ZIP).
+# It takes the one .app inside, whatever its name, and puts it in place of its Snag.app.
+cp "$out/Katch-macOS.zip" "$out/Snag-macOS.zip"
 
-# The disk image: Snag.app next to a link to Applications.
+# The disk image: Katch.app next to a link to Applications.
 stage="$out/dmg"
 mkdir -p "$stage"
-ditto "$app" "$stage/Snag.app"
+ditto "$app" "$stage/Katch.app"
 ln -s /Applications "$stage/Applications"
-hdiutil create -volname Snag -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/Snag-macOS.dmg"
+hdiutil create -volname Katch -srcfolder "$stage" -fs HFS+ -format UDZO -ov "$out/Katch-macOS.dmg"
 rm -rf "$stage"
 
-(cd "$out" && shasum -a 256 Snag-macOS.zip Snag-macOS.dmg | tee "SHA256SUMS-macos-$version.txt")
-ls -la "$out/Snag-macOS.zip" "$out/Snag-macOS.dmg"
+(cd "$out" && shasum -a 256 Katch-macOS.zip Katch-macOS.dmg Snag-macOS.zip | tee "SHA256SUMS-macos-$version.txt")
+ls -la "$out/Katch-macOS.zip" "$out/Katch-macOS.dmg" "$out/Snag-macOS.zip"

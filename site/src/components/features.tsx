@@ -23,7 +23,7 @@ const speed: Entry[] = [
     meta: "Pause · resume · survives a restart or a crash",
     spec: "8 parts",
     description:
-      "Big files are split into up to eight parts that download at once. Pause whenever you like; Snag picks up where it stopped, even after a restart or a crash.",
+      "Big files are split into up to eight parts that download at once. Pause whenever you like; Katch picks up where it stopped, even after a restart or a crash.",
     demo: (
       <Plate fig={2} caption="one file in eight parts, each at its own pace.">
         <div className="p-4 sm:p-5" aria-hidden="true">
@@ -47,7 +47,7 @@ const speed: Entry[] = [
     name: "About 35 MB of memory",
     meta: "Written in Rust",
     spec: "~35 MB",
-    description: "Snag stays light while big downloads run in the background.",
+    description: "Katch stays light while big downloads run in the background.",
     demo: (
       <div className="flex items-end gap-4 border-y border-line py-6" aria-hidden="true">
         <span className="font-display text-[clamp(5rem,20vw,8.5rem)] leading-[0.8] font-light tracking-tight italic">35</span>
@@ -150,7 +150,7 @@ export function Video() {
             Catches <em>any</em> video.
           </>
         }
-        intro="Like IDM, a Download button appears on videos as they play. Pick a quality and Snag takes it from there."
+        intro="Like IDM, a Download button appears on videos as they play. Pick a quality and Katch takes it from there."
       />
       <div className="mt-14 border-b border-line md:mt-20">
         {video.map((entry) => (
@@ -169,14 +169,14 @@ const lines: Entry[] = [
     name: "Galleries and albums",
     meta: "Pinterest · Imgur · Reddit · Instagram · X",
     spec: "gallery-dl",
-    description: "Paste a gallery, album or post and Snag brings down every picture in it.",
+    description: "Paste a gallery, album or post and Katch brings down every picture in it.",
   },
   {
     n: 6,
     name: "Torrents",
     meta: "Magnet links and .torrent files",
     spec: "built in",
-    description: "Magnet links and .torrent files download right in Snag, next to everything else. No second app.",
+    description: "Magnet links and .torrent files download right in Katch, next to everything else. No second app.",
   },
   {
     n: 7,
@@ -190,7 +190,7 @@ const lines: Entry[] = [
     name: "GitHub repo → ZIP",
     meta: "Paste a repo or branch link",
     spec: ".zip",
-    description: "Paste a GitHub repository or branch link and Snag downloads the code as a ZIP.",
+    description: "Paste a GitHub repository or branch link and Katch downloads the code as a ZIP.",
   },
 ];
 
@@ -201,7 +201,7 @@ const tools: Entry[] = [
     meta: "VirusTotal · your own free key",
     spec: "SHA-256",
     description:
-      "Add your own free VirusTotal key and Snag looks up the programs you download. Only the file’s SHA-256 fingerprint is sent, never the file.",
+      "Add your own free VirusTotal key and Katch looks up the programs you download. Only the file’s SHA-256 fingerprint is sent, never the file.",
     demo: (
       <div className="plate" aria-hidden="true">
         <div className="plate__frame">
@@ -223,7 +223,7 @@ const tools: Entry[] = [
     name: "Rules after download",
     meta: "By type, site or category",
     spec: "automatic",
-    description: "Tell Snag what to do once a file lands: convert to MP3, shrink videos, unpack archives or move files.",
+    description: "Tell Katch what to do once a file lands: convert to MP3, shrink videos, unpack archives or move files.",
     demo: (
       <div className="grid font-mono text-sm" aria-hidden="true">
         {[
@@ -254,7 +254,7 @@ const tools: Entry[] = [
           widths={[720, 1382]}
           height={864}
           sizes="(min-width: 1024px) 560px, 100vw"
-          alt="Snag’s stats page: data per day, a breakdown by type and the top sites"
+          alt="Katch’s stats page: data per day, a breakdown by type and the top sites"
         />
       </Plate>
     ),
@@ -264,7 +264,7 @@ const tools: Entry[] = [
     name: "Themes and any accent colour",
     meta: "Light · dark · any colour",
     spec: "yours",
-    description: "Make Snag yours. Try it here: pick a colour and this page follows along.",
+    description: "Make Katch yours. Try it here: pick a colour and this page follows along.",
     demo: <AccentPicker />,
   },
 ];
@@ -279,7 +279,7 @@ export function Catalogue() {
             Pictures, torrents, <em>pages</em>.
           </>
         }
-        intro="The rest of the catalogue: what else Snag brings down, and what it does once a file lands."
+        intro="The rest of the catalogue: what else Katch brings down, and what it does once a file lands."
       />
       <div className="mt-14 md:mt-20">
         {lines.map((entry) => (

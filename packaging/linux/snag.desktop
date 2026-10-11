@@ -1,12 +1,12 @@
 [Desktop Entry]
 Type=Application
-Name=Snag
+Name=Katch
 GenericName=Download Manager
 Comment=Fast downloads, videos, music, pictures and torrents
 Exec=snag
 Icon=snag
 Terminal=false
 Categories=Network;FileTransfer;
-Keywords=download;manager;video;youtube;torrent;
+Keywords=download;manager;video;youtube;torrent;snag;
 StartupWMClass=snag
 StartupNotify=true

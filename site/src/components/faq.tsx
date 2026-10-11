@@ -13,7 +13,7 @@ const questions: { q: string; value: string; a: React.ReactNode }[] = [
     value: "Yes · MIT",
     a: (
       <>
-        Yes, completely. Snag is open source under the MIT licence: no trial, no ads, no paid tier. The code is on{" "}
+        Yes, completely. Katch is open source under the MIT licence: no trial, no ads, no paid tier. The code is on{" "}
         <ExternalLink href={REPO_URL} className={link}>
           GitHub
         </ExternalLink>
@@ -44,17 +44,22 @@ const questions: { q: string; value: string; a: React.ReactNode }[] = [
   {
     q: "Is there a Mac or Linux version?",
     value: "Yes · both",
-    a: "Yes. On a Mac, open Snag-macOS.dmg and drag Snag to Applications (one app for Apple silicon and Intel, macOS 11 or newer). It isn’t signed by Apple yet, so the first time, right-click Snag and choose Open — on macOS 15, open System Settings → Privacy & Security and click Open Anyway. On Linux, download the AppImage (any distro: make it executable and run it) or the .deb for Ubuntu and Debian 22.04 or newer. Snag updates itself on all three.",
+    a: "Yes. On a Mac, open Katch-macOS.dmg and drag Katch to Applications (one app for Apple silicon and Intel, macOS 11 or newer). It isn’t signed by Apple yet, so the first time, right-click Katch and choose Open — on macOS 15, open System Settings → Privacy & Security and click Open Anyway. On Linux, download the AppImage (any distro: make it executable and run it) or the .deb for Ubuntu and Debian 22.04 or newer. Katch updates itself on all three.",
   },
   {
     q: "Can it download from Netflix or Spotify?",
     value: "No · DRM",
-    a: "No. Those services protect their streams with DRM, and Snag does not and will not break DRM. Please download only what you have the right to, and respect the work of the people who made it.",
+    a: "No. Those services protect their streams with DRM, and Katch does not and will not break DRM. Please download only what you have the right to, and respect the work of the people who made it.",
   },
   {
     q: "Why does it need ffmpeg?",
     value: "Once · 35 MB",
-    a: "To join HD video with its sound and to make MP3s. Snag fetches it once, the first time you need it (about 35 MB, checked against its published checksum). Ordinary file downloads never need it.",
+    a: "To join HD video with its sound and to make MP3s. Katch fetches it once, the first time you need it (about 35 MB, checked against its published checksum). Ordinary file downloads never need it.",
+  },
+  {
+    q: "Wasn’t this called Snag?",
+    value: "Yes · renamed",
+    a: "Yes. Snag is now Katch: the same app, under a new name. If you have Snag, it updates itself to Katch, and your downloads, history and settings stay as they are.",
   },
 ];
 

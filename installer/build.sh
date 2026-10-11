@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds target/installer/Snag-Setup-<version>.exe: the release app, the browser extension, and
+# Builds target/installer/Katch-Setup-<version>.exe: the release app, the browser extension, and
 # the Inno Setup installer around them. Needs Rust, Node and Inno Setup 6 (ISCC).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -24,15 +24,19 @@ mkdir -p target/store
 (cd extension && npx --yes web-ext@latest build --source-dir dist/firefox --artifacts-dir ../target/store --overwrite-dest >/dev/null)
 python - "$ext_version" <<'PY'
 import os, sys, zipfile
-out = f"target/store/snag-chrome-{sys.argv[1]}.zip"
+out = f"target/store/katch-chrome-{sys.argv[1]}.zip"
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     for root, _, files in os.walk("extension/dist/chrome"):
         for name in files:
             path = os.path.join(root, name)
             z.write(path, os.path.relpath(path, "extension/dist/chrome"))
 PY
-(cd target && sha256sum "installer/Snag-Setup-$version.exe" store/*-"$ext_version".zip > "SHA256SUMS-$version.txt")
-# Also under a name without the version, so .../releases/latest/download/Snag-Setup.exe (the
-# website's Download button) always gets the newest one. Upload both to the release.
-cp "target/installer/Snag-Setup-$version.exe" target/installer/Snag-Setup.exe
-ls -la "target/installer/Snag-Setup-$version.exe" target/installer/Snag-Setup.exe target/store/
+# Also under a name without the version, so .../releases/latest/download/Katch-Setup.exe (the
+# website's Download button) always gets the newest one. And both again under the names from
+# before the rename (RELEASE-ALIASES.md): Snag 1.1.3 and older update themselves with
+# Snag-Setup-<version>.exe, and old links ask for Snag-Setup.exe. Upload all four to the release.
+cp "target/installer/Katch-Setup-$version.exe" target/installer/Katch-Setup.exe
+cp "target/installer/Katch-Setup-$version.exe" "target/installer/Snag-Setup-$version.exe"
+cp "target/installer/Katch-Setup-$version.exe" target/installer/Snag-Setup.exe
+(cd target && sha256sum installer/{Katch,Snag}-Setup{-$version,}.exe store/*-"$ext_version".zip > "SHA256SUMS-$version.txt")
+ls -la target/installer/{Katch,Snag}-Setup{-$version,}.exe target/store/

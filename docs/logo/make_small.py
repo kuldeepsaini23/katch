@@ -1,4 +1,4 @@
-"""Bold, simplified Snag mark for 16-32 px: a paper arrow caught in an ink hook, on the orange tile."""
+"""Bold, simplified Katch mark for 16-32 px: a paper arrow caught in an ink hook, on the orange tile."""
 import sys
 from PIL import Image, ImageDraw
 
@@ -6,7 +6,7 @@ OUT = sys.argv[1]
 B = 1024
 INK = (11, 11, 12, 255)
 PAPER = (239, 233, 220, 255)
-ORANGE = (217, 104, 43, 255)  # Snag copper #D9682B
+ORANGE = (217, 104, 43, 255)  # Katch copper #D9682B
 
 
 def mark(tile: bool = True) -> Image.Image:

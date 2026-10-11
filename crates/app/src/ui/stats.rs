@@ -18,7 +18,7 @@ use iced::{Alignment, Element, Fill, FillPortion};
 pub fn view(m: &Model, grow: f32, c: Colors) -> Element<'_, Message> {
     let s = stats::compute(&m.items, &m.daily, m.stats_range, chrono::Local::now().date_naive());
     let header = row![
-        column![text("Stats").size(19).font(style::SEMIBOLD), small("What Snag downloaded: by day, by type and by site", c.text3)].spacing(3),
+        column![text("Stats").size(19).font(style::SEMIBOLD), small("What Katch downloaded: by day, by type and by site", c.text3)].spacing(3),
         Space::new().width(Fill),
         range_switch(m.stats_range, c),
     ]

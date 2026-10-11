@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* An engraved catalogue in Snag's logo colours, in two printings: Ink (dark page, paper type) and
+/* An engraved catalogue in Katch's logo colours, in two printings: Ink (dark page, paper type) and
    Paper (paper page, ink type). <html data-theme> picks one; it follows the system until the
    visitor chooses (see the script in layout.tsx). One block per page is printed the other way
    round, `.contrast`, for one strong moment: the privacy part. */

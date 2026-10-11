@@ -1,11 +1,11 @@
 //! ffmpeg on demand: joins HD video with its sound, makes MP3s and runs the conversion rules.
-//! Not shipped with Snag (most downloads never need it); fetched once, checked against the
+//! Not shipped with Katch (most downloads never need it); fetched once, checked against the
 //! published SHA-256, and only `ffmpeg` and `ffprobe` are kept (`.exe` on Windows).
 //! Windows and Linux fetch one archive holding both; macOS one zip for each.
 
 use std::path::Path;
 
-/// gyan.dev's "essentials" build: a 35 MB .7z with the codecs Snag uses.
+/// gyan.dev's "essentials" build: a 35 MB .7z with the codecs Katch uses.
 #[cfg(windows)]
 pub const URL: &str = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z";
 /// Its SHA-256, published next to it.

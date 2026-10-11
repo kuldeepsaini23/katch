@@ -1,8 +1,8 @@
-# iced_tiny_skia 0.14.1, patched for Snag
+# iced_tiny_skia 0.14.1, patched for Katch
 
 A copy of [iced_tiny_skia](https://crates.io/crates/iced_tiny_skia) 0.14.1 (MIT, by the iced
 authors), used through `[patch.crates-io]` in the workspace `Cargo.toml`. Changes, all in
-`src/window/compositor.rs` and marked "Snag:":
+`src/window/compositor.rs` and marked "Katch:":
 
 1. **Full redraw on any change.** Upstream redraws only damaged regions. While a list scrolls the
    damage splits into ~20 rectangles and every layer is drawn once per rectangle: 100-120 ms a
@@ -10,6 +10,6 @@ authors), used through `[patch.crates-io]` in the workspace `Cargo.toml`. Change
    bullet dots under What's new, piled-up dialog shadows). One full redraw measured ~30 ms while scrolling (no clipping needed); a single clipped
    rectangle around the changes was slower (~38 ms).
    Frames where nothing changed are still skipped.
-2. **Frame timing log** for Snag's tests, only when `SNAG_RENDER_LOG` names a file.
+2. **Frame timing log** for Katch's tests, only when `SNAG_RENDER_LOG` names a file.
 
 Measure with the debug scene `scroll-test` (see `crates/app/src/snap.rs`).

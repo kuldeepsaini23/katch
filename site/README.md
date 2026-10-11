@@ -1,6 +1,6 @@
-# snag.kuldeepsaini.dev
+# katch.kuldeepsaini.dev
 
-The website for Snag: the landing page (`/`) and the privacy policy for the app and the browser extension (`/privacy/`). Next.js App Router with a static export and Tailwind CSS. The idea: an engraved catalogue for a modern download manager, in the colours of Snag's logo (ink, warm paper, one copper accent), printed two ways: Ink (dark) and Paper (light). It follows the system until the visitor picks one with the switch in the top bar (or in the contents on phones); an inline script in `src/app/layout.tsx` sets `<html data-theme>` before the first paint, and both printings are one set of CSS variables each in `src/app/globals.css`, with the privacy part always printed the other way round. The page is in eight parts and the sticky top bar is both its download and its index: one segment per part fills as you read it, the label names the part you are in and opens the contents. Features are numbered catalogue entries, screenshots are plates with captions, and the line-work (guilloche and hatching) is drawn by SVG masks and CSS gradients. All motion is CSS plus two small IntersectionObserver/scroll scripts, and it all stops for reduced motion.
+The website for Katch (called Snag until 1.1.3): the landing page (`/`) and the privacy policy for the app and the browser extension (`/privacy/`). Next.js App Router with a static export and Tailwind CSS. The idea: an engraved catalogue for a modern download manager, in the colours of Katch's logo (ink, warm paper, one copper accent), printed two ways: Ink (dark) and Paper (light). It follows the system until the visitor picks one with the switch in the top bar (or in the contents on phones); an inline script in `src/app/layout.tsx` sets `<html data-theme>` before the first paint, and both printings are one set of CSS variables each in `src/app/globals.css`, with the privacy part always printed the other way round. The page is in eight parts and the sticky top bar is both its download and its index: one segment per part fills as you read it, the label names the part you are in and opens the contents. Features are numbered catalogue entries, screenshots are plates with captions, and the line-work (guilloche and hatching) is drawn by SVG masks and CSS gradients. All motion is CSS plus two small IntersectionObserver/scroll scripts, and it all stops for reduced motion.
 
 ## Run it
 
@@ -38,16 +38,16 @@ Run it again whenever a screenshot or the logo changes, and commit the results. 
 - `src/components/catalogue.tsx`: the shared pieces (part headings, numbered entries, plates)
 - `src/components/features.tsx`: the catalogue entries No. 01–12 (edit the entry lists)
 - `src/app/privacy/page.tsx`: the privacy policy (update the effective date when it changes)
-- `src/lib/site.ts`: the site address, GitHub links, the installer link (the stable `Snag-Setup.exe` asset of the latest release) and the version, read at build time from `../Cargo.toml`. Nothing to change for a new release; just rebuild.
+- `src/lib/site.ts`: the site address, GitHub links, the installer link (the stable `Katch-Setup.exe` asset of the latest release) and the version, read at build time from `../Cargo.toml`. Nothing to change for a new release; just rebuild.
 - `src/app/sitemap.ts`, `src/app/robots.ts`: `sitemap.xml` and `robots.txt`
 
 ## Deploy
 
-The site lives at **https://snag.kuldeepsaini.dev**. Either host works; pick one.
+The site lives at **https://katch.kuldeepsaini.dev** (on Vercel). The old address, snag.kuldeepsaini.dev, sends every page there with a permanent redirect: `vercel.json`, which matches on the host, so it works once both domains are on the same Vercel project. (Next's own `redirects` and `proxy.ts` don't run in a static export.) Either host works; pick one.
 
 ### Cloudflare Pages
 
-1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**, and pick the `kuldeepsaini23/snag` repository.
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**, and pick the `kuldeepsaini23/katch` repository.
 2. Build settings:
    - Production branch: `master`
    - Framework preset: **None**
@@ -55,24 +55,25 @@ The site lives at **https://snag.kuldeepsaini.dev**. Either host works; pick one
    - Build output directory: `out`
    - Root directory (advanced): `site`
 3. **Save and Deploy**. The site is then at `<project>.pages.dev`.
-4. Project → **Custom domains** → **Set up a custom domain** → `snag.kuldeepsaini.dev`.
+4. Project → **Custom domains** → **Set up a custom domain** → `katch.kuldeepsaini.dev`.
    - If `kuldeepsaini.dev` is on Cloudflare DNS, Cloudflare adds the record for you.
-   - Otherwise, at your DNS provider add a **CNAME** record: name `snag`, target `<project>.pages.dev`.
+   - Otherwise, at your DNS provider add a **CNAME** record: name `katch`, target `<project>.pages.dev`.
+   - `vercel.json` means nothing to Cloudflare: send snag.kuldeepsaini.dev to katch.kuldeepsaini.dev with a redirect rule (Rules → Redirect Rules, or a Bulk Redirect) instead.
 
-Or upload a local build without Git: `bun run build`, then `bunx wrangler pages deploy out --project-name snag-site`.
+Or upload a local build without Git: `bun run build`, then `bunx wrangler pages deploy out --project-name katch-site`.
 
 ### Vercel
 
-1. vercel.com → **Add New** → **Project** → import `kuldeepsaini23/snag`.
+1. vercel.com → **Add New** → **Project** → import `kuldeepsaini23/katch`.
 2. **Root Directory**: `site`. Framework preset: **Next.js** (it detects the static export). Install command: `bun install`, build command: `bun run build`.
 3. **Deploy**.
-4. Project → **Settings** → **Domains** → add `snag.kuldeepsaini.dev`.
-5. At your DNS provider add a **CNAME** record: name `snag`, target `cname.vercel-dns.com` (Vercel shows the exact value on the Domains page).
+4. Project → **Settings** → **Domains** → add `katch.kuldeepsaini.dev`, and keep `snag.kuldeepsaini.dev` on the project for the redirect (or set it to redirect to katch.kuldeepsaini.dev right there, which does the same).
+5. At your DNS provider add a **CNAME** record: name `katch`, target `cname.vercel-dns.com` (Vercel shows the exact value on the Domains page).
 
 HTTPS certificates are issued automatically by both hosts once the CNAME resolves.
 
 ### After the first deploy
 
-- Check `https://snag.kuldeepsaini.dev/privacy/` loads; that is the privacy policy URL for the Chrome Web Store, Edge Add-ons and Firefox Add-ons listings.
+- Check `https://katch.kuldeepsaini.dev/privacy/` loads, and that `https://snag.kuldeepsaini.dev/privacy/` lands there; that is the privacy policy URL for the Chrome Web Store, Edge Add-ons and Firefox Add-ons listings.
 - Paste the home page into a link preview (Slack, X, Discord) to check the Open Graph card.
-- Submit `https://snag.kuldeepsaini.dev/sitemap.xml` in Google Search Console if you want it indexed sooner.
+- Submit `https://katch.kuldeepsaini.dev/sitemap.xml` in Google Search Console if you want it indexed sooner.

@@ -67,8 +67,8 @@ export function DownloadMenu({
   const latest = `${releasesUrl}/latest/download`;
   const builds = {
     windows: { href: downloadUrl, icon: WindowsLogo, label },
-    mac: { href: `${latest}/Snag-macOS.dmg`, icon: AppleLogo, label: "Download for macOS" },
-    linux: { href: `${latest}/Snag-x86_64.AppImage`, icon: LinuxLogo, label: "Download for Linux" },
+    mac: { href: `${latest}/Katch-macOS.dmg`, icon: AppleLogo, label: "Download for macOS" },
+    linux: { href: `${latest}/Katch-x86_64.AppImage`, icon: LinuxLogo, label: "Download for Linux" },
   };
   const main = builds[os];
   const MainIcon = main.icon;
@@ -77,7 +77,7 @@ export function DownloadMenu({
     { href: builds.mac.href, icon: AppleLogo, name: "macOS 11+", detail: "Apple silicon & Intel · .dmg" },
     { href: builds.linux.href, icon: LinuxLogo, name: "Linux", detail: "Any distro · AppImage" },
     ...(version
-      ? [{ href: `${latest}/snag_${version}_amd64.deb`, icon: LinuxLogo, name: "Ubuntu & Debian", detail: "22.04 or newer · .deb" }]
+      ? [{ href: `${latest}/katch_${version}_amd64.deb`, icon: LinuxLogo, name: "Ubuntu & Debian", detail: "22.04 or newer · .deb" }]
       : []),
   ];
 
@@ -192,7 +192,7 @@ export function DownloadMenu({
           ref={menu}
           id={`${id}-menu`}
           role="menu"
-          aria-label="Download Snag"
+          aria-label="Download Katch"
           onKeyDown={onMenuKey}
           className={cn(
             "dl-menu absolute top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-line-strong bg-bg p-1 text-left shadow-[0_28px_70px_-24px_var(--shadow)]",
@@ -201,7 +201,7 @@ export function DownloadMenu({
         >
           <div className="border border-line">
             <p className="label flex items-baseline justify-between px-4 pt-3 pb-2">
-              <span>Download Snag</span>
+              <span>Download Katch</span>
               {version && <span className="normal-case">v{version}</span>}
             </p>
             {platforms.map(({ href, icon: Icon, name, detail }) => (

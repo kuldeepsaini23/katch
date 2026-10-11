@@ -101,7 +101,7 @@ pub fn newer(a: &str, b: &str) -> bool {
 mod tests {
     use super::*;
 
-    const SAMPLE: &str = "# What's new in Snag
+    const SAMPLE: &str = "# What's new in Katch
 
 Intro text that isn't part of any release.
 

@@ -188,9 +188,9 @@ pub fn youtube_id(url: &str) -> Option<&str> {
     id.filter(|id| id.len() == 11 && id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_'))
 }
 
-/// Where a picture comes from. Only Snag itself makes `Local` (a finished picture is its own
+/// Where a picture comes from. Only Katch itself makes `Local` (a finished picture is its own
 /// thumbnail, read from the item's file); a picture recorded with an item or read from a page is
-/// `Web`, and only ever http(s): a `file:` or `\\host\share` "thumbnail" would have Snag read
+/// `Web`, and only ever http(s): a `file:` or `\\host\share` "thumbnail" would have Katch read
 /// local files, or hand the Windows login to a network share.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ThumbSource {
@@ -333,7 +333,7 @@ pub fn url_hint(m: &Model) -> &'static str {
     if m.probing {
         "Reading video info…"
     } else if m.settings.clipboard_watch {
-        "Copy any link and Snag offers to download it. Paste one here and press Enter."
+        "Copy any link and Katch offers to download it. Paste one here and press Enter."
     } else {
         "Paste a link and press Enter."
     }
@@ -1288,7 +1288,7 @@ mod tests {
 
     #[test]
     fn a_recorded_thumbnail_is_never_read_from_disk() {
-        // Recorded by an older Snag, or a page that named a file (a network share would get
+        // Recorded by an older Katch, or a page that named a file (a network share would get
         // the Windows login): ignored, nothing is read.
         for bad in [r"file:\\host\share\a.png", "file:///C:/x.png", r"\\host\share\b.png", r"C:\x.png", "ftp://h/a.png"] {
             let video = Item { thumbnail: Some(bad.into()), ..item(1, "v.mp4", Category::Video, Status::Done) };

@@ -3,10 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Snag</string>
+	<string>Katch</string>
 	<key>CFBundleDisplayName</key>
-	<string>Snag</string>
-	<!-- Also the LaunchAgent's label and the notifications' sender (crates/app/src/platform.rs: BUNDLE_ID). -->
+	<string>Katch</string>
+	<!-- Also the LaunchAgent's label and the notifications' sender (crates/app/src/platform.rs: BUNDLE_ID).
+	     From before the rename to Katch, and kept: macOS files the app's permissions under it. -->
 	<key>CFBundleIdentifier</key>
 	<string>dev.kuldeepsaini.snag</string>
 	<key>CFBundleExecutable</key>

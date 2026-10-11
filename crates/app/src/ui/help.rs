@@ -34,13 +34,13 @@ pub fn menu(c: Colors) -> Element<'static, Message> {
 /// The open sheet. `bug_text`: what the user typed into the bug report.
 pub fn sheet<'a>(m: &'a Model, info: &'a Info, bug_text: &'a text_editor::Content, c: Colors) -> Element<'a, Message> {
     match info {
-        Info::Shortcuts => frame("Keyboard shortcuts", "Snag works with the mouse; these save a few clicks", shortcuts(c), Length::Shrink, c),
+        Info::Shortcuts => frame("Keyboard shortcuts", "Katch works with the mouse; these save a few clicks", shortcuts(c), Length::Shrink, c),
         Info::Help => frame("Help", "The short version of everything", help(c), Length::Fixed(540.0), c),
         Info::WhatsNew { since } => {
             // After an update: what changed since the version before. From the menu: every version.
             let (title, subtitle) = match since {
-                Some(_) => (format!("What's new in Snag {}", changelog::VERSION), "Updated: here's what changed. The ? menu has this list any time"),
-                None => ("What's new".to_string(), "Every version of Snag, newest first"),
+                Some(_) => (format!("What's new in Katch {}", changelog::VERSION), "Updated: here's what changed. The ? menu has this list any time"),
+                None => ("What's new".to_string(), "Every version of Katch, newest first"),
             };
             frame(&title, subtitle, whats_new(since.as_deref(), c), Length::Fixed(540.0), c)
         }
@@ -82,8 +82,8 @@ const SHORTCUTS: &[(&str, &str)] = if cfg!(target_os = "macos") {
         ("Esc", "Close the open sheet or menu, else deselect"),
         ("Cmd + ,", "Settings"),
         ("Double-click", "On the title bar: zoom or restore the window"),
-        ("Cmd + W", "Hide Snag to the menu bar (it keeps downloading)"),
-        ("Cmd + Q", "Quit Snag (downloads pause and resume next time)"),
+        ("Cmd + W", "Hide Katch to the menu bar (it keeps downloading)"),
+        ("Cmd + Q", "Quit Katch (downloads pause and resume next time)"),
     ]
 } else {
     &[
@@ -92,7 +92,7 @@ const SHORTCUTS: &[(&str, &str)] = if cfg!(target_os = "macos") {
         ("Esc", "Close the open sheet or menu, else deselect"),
         ("F1", "Help"),
         ("Double-click", "On the title bar: maximise or restore the window"),
-        ("Alt + F4", "Hide Snag to the tray (it keeps downloading)"),
+        ("Alt + F4", "Hide Katch to the tray (it keeps downloading)"),
     ]
 };
 
@@ -109,7 +109,7 @@ const HELP: [(Icon, &str, &[&str]); 5] = [
         Icon::Download,
         "Basics",
         &[
-            "Copy a link anywhere and Snag offers it in the corner. Or paste it into the link bar and press Enter.",
+            "Copy a link anywhere and Katch offers it in the corner. Or paste it into the link bar and press Enter.",
             "Video and music links ask for a quality (or MP3); files start at once. Playlists let you tick the videos you want.",
             "Point at a download for Pause, Resume and Cancel. Click it for details, its folder, and Refresh link when an old link has expired.",
             crate::platform::CLOSE_HINT,
@@ -119,9 +119,9 @@ const HELP: [(Icon, &str, &[&str]); 5] = [
         Icon::Browser,
         "Browser extension",
         &[
-            "Install the Snag extension, press Connect in it, then Allow in Snag. There's no code to copy.",
-            "On a video page the Snag button opens the quality menu. Right-click a link or picture for Download with Snag.",
-            "After updating Snag or the extension: reload the extension on the browser's Extensions page, then press F5 on tabs that were already open.",
+            "Install the Katch extension, press Connect in it, then Allow in Katch. There's no code to copy.",
+            "On a video page the Katch button opens the quality menu. Right-click a link or picture for Download with Katch.",
+            "After updating Katch or the extension: reload the extension on the browser's Extensions page, then press F5 on tabs that were already open.",
         ],
     ),
     (
@@ -137,7 +137,7 @@ const HELP: [(Icon, &str, &[&str]); 5] = [
         "Torrents",
         &[
             "Paste a magnet link or a .torrent link like any other link: it downloads in the same list, queues and speed limit.",
-            "Snag stops sharing once a torrent finishes, unless Keep sharing torrents is on (Settings → Connections).",
+            "Katch stops sharing once a torrent finishes, unless Keep sharing torrents is on (Settings → Connections).",
         ],
     ),
     (
@@ -170,7 +170,7 @@ fn whats_new<'a>(since: Option<&str>, c: Colors) -> Element<'a, Message> {
             let mut block = column![].spacing(14);
             if many || since.is_none() {
                 let date = r.date.map(|d| format!(" · {d}")).unwrap_or_default();
-                block = block.push(text(format!("Snag {}{date}", r.version)).size(14).font(style::SEMIBOLD));
+                block = block.push(text(format!("Katch {}{date}", r.version)).size(14).font(style::SEMIBOLD));
             }
             for s in r.sections {
                 let mut list = column![].spacing(8);

@@ -1,0 +1,251 @@
+name: Store uploads
+
+# Sends the browser extension to the Chrome Web Store, Firefox Add-ons (AMO) and Microsoft Edge
+# Add-ons. release.yml runs it once its Windows job has attached the store packages
+# (katch-chrome-<ext>.zip, katch_download_manager-<ext>.zip) to the release; it can also be run by
+# hand for a tag whose release has them (Actions -> Store uploads -> Run workflow).
+#
+# - Each store only when all of its secrets are set (docs/store/AUTOMATIC-UPLOADS.md); otherwise
+#   it is skipped with a notice.
+# - Only when extension/manifest.json's version differs from the previous release tag's: the
+#   stores refuse a version they already have. "force" (manual runs) uploads anyway.
+# - A store that fails is reported in the run's summary and never fails the app release.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag whose extension packages to upload (e.g. v1.1.4)
+        required: true
+      force:
+        description: Upload even if the extension's version is the same as the previous release's
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stores-${{ inputs.tag }}
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag }}
+      FORCE: ${{ inputs.force }}
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+      CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+      CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+      AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+      AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+      EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+      EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+      EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+      # What the store reviewers read (Firefox and Edge).
+      REVIEW_NOTES: >-
+        Needs the Katch desktop app (Windows, free, open source:
+        https://github.com/kuldeepsaini23/snag/releases/latest) running on the same computer; the
+        extension talks only to http://127.0.0.1:47321-47326. Without the app, the popup shows
+        "Katch isn't running". Plain JavaScript, no bundler or minifier: the package is the source
+        (https://github.com/kuldeepsaini23/snag/tree/master/extension).
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          # Every tag, to read the previous release's extension version.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Has the extension changed since the previous release?
+        id: version
+        run: |
+          version=$(node -p "require('./extension/manifest.json').version")
+          # The release tag just before this one, by version (v1.1.3 before v1.1.4).
+          prev_tag=$(git tag --list 'v*' --sort=-v:refname | grep -A1 -Fx "$TAG" | sed -n 2p || true)
+          prev=""
+          if [ -n "$prev_tag" ]; then
+            prev=$(git show "$prev_tag:extension/manifest.json" 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).version)}catch(_){}})")
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "previous=${prev:-none} (${prev_tag:-no earlier tag})" >> "$GITHUB_OUTPUT"
+          if [ "$version" != "$prev" ] || [ "$FORCE" = "true" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Extension $version (previous release: ${prev:-none} at ${prev_tag:-no earlier tag}): uploading"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Extension $version is the same as in $prev_tag: nothing to send to the stores"
+          fi
+
+      - name: Download the store packages from the release
+        id: packages
+        if: steps.version.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          mkdir -p store
+          gh release download "$TAG" --dir store --clobber \
+            --pattern "katch-chrome-$v.zip" --pattern "katch_download_manager-$v.zip"
+          ls -la store
+
+      - name: Chrome Web Store
+        id: chrome
+        if: steps.packages.outcome == 'success'
+        continue-on-error: true
+        run: |
+          for name in CWS_CLIENT_ID CWS_CLIENT_SECRET CWS_REFRESH_TOKEN CWS_PUBLISHER_ID CWS_EXTENSION_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::notice::Chrome Web Store skipped: the $name secret isn't set"
+              echo "result=skipped (no $name secret)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          zip="store/katch-chrome-${{ steps.version.outputs.version }}.zip"
+          token=$(curl -sS --fail-with-body https://oauth2.googleapis.com/token \
+            -d "client_id=$CWS_CLIENT_ID" -d "client_secret=$CWS_CLIENT_SECRET" \
+            -d "refresh_token=$CWS_REFRESH_TOKEN" -d grant_type=refresh_token | jq -r .access_token)
+          echo "::add-mask::$token"
+          api=https://chromewebstore.googleapis.com
+          item="publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID"
+
+          upload=$(curl -sS --fail-with-body -X POST -H "Authorization: Bearer $token" -T "$zip" "$api/upload/v2/$item:upload")
+          echo "$upload"
+          state=$(jq -r '.uploadState // empty' <<<"$upload")
+          # A large package is processed in the background: wait up to five minutes.
+          for _ in $(seq 30); do
+            case "$state" in
+              IN_PROGRESS | UPLOAD_IN_PROGRESS) sleep 10 ;;
+              *) break ;;
+            esac
+            status=$(curl -sS --fail-with-body -H "Authorization: Bearer $token" "$api/v2/$item:fetchStatus")
+            state=$(jq -r '.lastAsyncUploadState // empty' <<<"$status")
+          done
+          [ "$state" = SUCCEEDED ] || { echo "::error::Chrome Web Store upload ended as '${state:-unknown}'"; exit 1; }
+
+          publish=$(curl -sS --fail-with-body -X POST -H "Authorization: Bearer $token" -H "Content-Length: 0" "$api/v2/$item:publish")
+          echo "$publish"
+          echo "result=submitted for review" >> "$GITHUB_OUTPUT"
+
+      - name: Firefox Add-ons
+        id: firefox
+        if: steps.packages.outcome == 'success'
+        continue-on-error: true
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          for name in AMO_JWT_ISSUER AMO_JWT_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::notice::Firefox Add-ons skipped: the $name secret isn't set"
+              echo "result=skipped (no $name secret)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          # The released package exactly, unpacked: web-ext signs a folder.
+          rm -rf store/firefox && mkdir -p store/firefox
+          unzip -q "store/katch_download_manager-${{ steps.version.outputs.version }}.zip" -d store/firefox
+          jq -n --arg notes "$REVIEW_NOTES" '{version: {approval_notes: $notes}}' > store/amo-metadata.json
+          # Listed: submitted for Mozilla's review, which can take days; don't wait for it
+          # (--approval-timeout 0). The code isn't minified, so no separate source upload.
+          npx --yes web-ext@8 sign --channel listed --source-dir store/firefox \
+            --artifacts-dir store/firefox-signed --amo-metadata store/amo-metadata.json --approval-timeout 0
+          echo "result=submitted for review" >> "$GITHUB_OUTPUT"
+
+      - name: Microsoft Edge Add-ons
+        id: edge
+        if: steps.packages.outcome == 'success'
+        continue-on-error: true
+        run: |
+          for name in EDGE_PRODUCT_ID EDGE_CLIENT_ID EDGE_API_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::notice::Edge Add-ons skipped: the $name secret isn't set"
+              echo "result=skipped (no $name secret)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          zip="store/katch-chrome-${{ steps.version.outputs.version }}.zip"
+          api="https://api.addons.microsoftedge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
+          auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
+
+          # run_operation <url> <status url> <curl args...>: starts an operation (202, with a
+          # Location header ending in its id) and waits up to five minutes for it to succeed.
+          run_operation() {
+            local url=$1 status_url=$2; shift 2
+            local code op
+            code=$(curl -sS -o store/edge-body -D store/edge-headers -w '%{http_code}' -X POST "${auth[@]}" "$@" "$url")
+            cat store/edge-body; echo
+            [ "$code" = 202 ] || { echo "::error::Edge Add-ons answered $code for $url"; return 1; }
+            op=$(grep -i '^location:' store/edge-headers | tr -d '\r' | sed -E 's#.*/##; s/^location: *//I')
+            [ -n "$op" ] || { echo "::error::Edge Add-ons gave no operation id"; return 1; }
+            for _ in $(seq 30); do
+              sleep 10
+              curl -sS --fail-with-body "${auth[@]}" "$status_url/$op" > store/edge-status
+              case "$(jq -r '.status // empty' store/edge-status)" in
+                InProgress) ;;
+                Succeeded) cat store/edge-status; echo; return 0 ;;
+                *) cat store/edge-status; echo; echo "::error::Edge Add-ons operation failed"; return 1 ;;
+              esac
+            done
+            echo "::error::Edge Add-ons operation still running after five minutes"
+            return 1
+          }
+
+          run_operation "$api/draft/package" "$api/draft/package/operations" \
+            -H "Content-Type: application/zip" -T "$zip"
+          run_operation "$api" "$api/operations" \
+            -H "Content-Type: application/json" -d "$(jq -n --arg notes "$REVIEW_NOTES" '{notes: $notes}')"
+          echo "result=submitted for review" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        if: always()
+        env:
+          CHANGED: ${{ steps.version.outputs.changed }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+          PACKAGES: ${{ steps.packages.outcome }}
+          CHROME: ${{ steps.chrome.outcome }}|${{ steps.chrome.outputs.result }}
+          FIREFOX: ${{ steps.firefox.outcome }}|${{ steps.firefox.outputs.result }}
+          EDGE: ${{ steps.edge.outcome }}|${{ steps.edge.outputs.result }}
+        run: |
+          line() {
+            local outcome=${2%%|*} result=${2#*|}
+            case "$outcome" in
+              success) echo "| $1 | ${result:-done} |" ;;
+              failure) echo "| $1 | **failed**: see the step's log |" ;;
+              *) echo "| $1 | not run |" ;;
+            esac
+          }
+          {
+            echo "### Extension $VERSION to the stores ($TAG)"
+            echo
+            echo "Previous release's extension: $PREVIOUS"
+            echo
+            if [ -z "$VERSION" ]; then
+              echo "**Couldn't read the extension's version**: nothing uploaded."
+            elif [ "$CHANGED" != "true" ]; then
+              echo "Same version as the previous release: nothing uploaded."
+            elif [ "$PACKAGES" != "success" ]; then
+              echo "**The release has no store packages for $VERSION**: nothing uploaded (the Windows job attaches them)."
+            else
+              echo "| Store | Result |"
+              echo "|---|---|"
+              line "Chrome Web Store" "$CHROME"
+              line "Firefox Add-ons" "$FIREFOX"
+              line "Microsoft Edge Add-ons" "$EDGE"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$GITHUB_STEP_SUMMARY"
+          for store in "Chrome Web Store:$CHROME" "Firefox Add-ons:$FIREFOX" "Microsoft Edge Add-ons:$EDGE"; do
+            case "${store#*:}" in failure*) echo "::warning::${store%%:*} upload failed; the release itself is fine" ;; esac
+          done

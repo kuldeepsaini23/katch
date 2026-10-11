@@ -1,7 +1,7 @@
 // The landing page's eight sections, in order. The top bar has one segment per part: each fills
 // as you read through its section, and the bar's label names the part you are in.
 export const parts = [
-  { id: "top", name: "Snag" },
+  { id: "top", name: "Katch" },
   { id: "features", name: "Downloads" },
   { id: "video", name: "Video" },
   { id: "catalogue", name: "Catalogue" },

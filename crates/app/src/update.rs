@@ -110,7 +110,7 @@ pub enum Message {
     DraftCheckUpdates(bool),
     /// Linux: start at sign-in on or off (applied at once: it's a file, not a setting).
     Autostart(bool),
-    /// Look for a newer Snag (at start, then every hour, and when the window is opened again).
+    /// Look for a newer Katch (at start, then every hour, and when the window is opened again).
     CheckUpdate,
     /// "Check for updates" in the ? menu: like `CheckUpdate`, but always answers.
     CheckUpdateNow,
@@ -285,10 +285,13 @@ pub fn boot(manager: Manager, bridge_status: String, data_dir: PathBuf, runtime:
     let model = Model { bridge_status, system_light: crate::appearance::system_light(), autostart: crate::platform::autostart(), ..Model::default() };
     // macOS: the menu bar icon can only be made once the app runs (`Message::MakeTray`).
     let tray = if cfg!(target_os = "macos") { None } else { crate::tray::create() };
-    // Debug runs with a stand-in data folder (tests, snapshots) must leave the installed Snag's
-    // per-user notification registration alone: it points at the real data folder.
+    // Debug runs with a stand-in data folder (tests, snapshots) must leave the installed Katch's
+    // per-user notification registration (and its autostart entry) alone: it points at the real
+    // data folder.
     if !(cfg!(debug_assertions) && std::env::var_os("RDM_TEST_OFFSCREEN").is_some()) {
         crate::notify::register(&data_dir);
+        #[cfg(target_os = "linux")]
+        crate::platform::rename_autostart_entry();
     }
     let system_reduced = crate::motion::system_reduced_motion();
     let motion = Motion::new(crate::view::motion_targets(&model), system_reduced);
@@ -307,7 +310,7 @@ pub fn boot(manager: Manager, bridge_status: String, data_dir: PathBuf, runtime:
         backdrop_asked: None,
         icons_accent: None,
     };
-    // A while after start (not to slow it down), look for a newer Snag.
+    // A while after start (not to slow it down), look for a newer Katch.
     let look = Task::perform(tokio::time::sleep(std::time::Duration::from_secs(8)), |_| Message::CheckUpdate);
     #[cfg(target_os = "macos")]
     let look = Task::batch([look, Task::done(Message::MakeTray)]);
@@ -581,7 +584,7 @@ fn handle(app: &mut App, message: Message) -> Task<Message> {
         Message::Loaded(state) => {
             model.load(state);
             // A fresh install starts the tour (decided before the version is noted: a version
-            // seen means Snag ran before). After an update, "What's new" shows once.
+            // seen means Katch ran before). After an update, "What's new" shows once.
             let tour = model.check_tour();
             if model.check_version(crate::changelog::VERSION).is_some() || tour.is_some() {
                 let settings = model.settings.clone();
@@ -700,7 +703,7 @@ fn handle(app: &mut App, message: Message) -> Task<Message> {
         Message::UpdateFetched(result) => {
             let fetched = result.and_then(|file| crate::updater::run(&file).map_err(|e| format!("couldn't start the update: {e}")));
             match fetched {
-                // The installer closes Snag, replaces it and opens the new one.
+                // The installer closes Katch, replaces it and opens the new one.
                 Ok(()) => return iced::exit(),
                 Err(e) => {
                     if let Some(u) = model.update.as_mut() {
@@ -1063,7 +1066,7 @@ fn handle(app: &mut App, message: Message) -> Task<Message> {
                         },
                         |added| match added {
                             Some(id) => Message::Added(id),
-                            None => Message::Core(Event::Notice("No video or file at that link: it's a web page. To keep the page itself, right-click it in the browser → Save this page with Snag.".into())),
+                            None => Message::Core(Event::Notice("No video or file at that link: it's a web page. To keep the page itself, right-click it in the browser → Save this page with Katch.".into())),
                         },
                     );
                 }
@@ -1148,7 +1151,7 @@ fn handle(app: &mut App, message: Message) -> Task<Message> {
     Task::none()
 }
 
-/// `show_window`, and a look for a newer Snag (at most every ten minutes): Snag can stay hidden
+/// `show_window`, and a look for a newer Katch (at most every ten minutes): Katch can stay hidden
 /// in the tray for days, and the card about an update is only seen in the window.
 fn reopen_window(app: &mut App) -> Task<Message> {
     let model = &app.model;

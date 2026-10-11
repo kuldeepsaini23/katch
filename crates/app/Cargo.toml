@@ -4,6 +4,8 @@ version.workspace = true
 description = "Download manager for files, videos, music, image galleries and torrents"
 edition.workspace = true
 
+# The program keeps its name from before the rename to Katch: the installer, the Windows sign-in
+# entry, taskbar pins, firewall rules, the Linux .desktop file and Katch.app all start `snag`.
 [[bin]]
 name = "snag"
 path = "src/main.rs"
@@ -54,9 +56,13 @@ tempfile.workspace = true
 [build-dependencies]
 winresource = "0.1.31"
 
-# `cargo deb -p rdm-app` (packaging/linux/build.sh): snag_<version>_amd64.deb.
+# `cargo deb -p rdm-app` (packaging/linux/build.sh): katch_<version>_amd64.deb. It takes the place
+# of the `snag` package from before the rename to Katch (installing it removes that one).
 [package.metadata.deb]
-name = "snag"
+name = "katch"
+conflicts = "snag"
+replaces = "snag"
+provides = "snag"
 maintainer = "Kuldeep Saini <89005887+kuldeepsaini23@users.noreply.github.com>"
 copyright = "2026, Kuldeep Saini"
 license-file = ["../../LICENSE", "0"]

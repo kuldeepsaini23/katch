@@ -21,7 +21,7 @@ define_class!(
     unsafe impl NSObjectProtocol for Delegate {}
 
     unsafe impl NSApplicationDelegate for Delegate {
-        /// The Dock icon was clicked: bring the hidden window back, as the tray's Open Snag does.
+        /// The Dock icon was clicked: bring the hidden window back, as the tray's Open Katch does.
         #[unsafe(method(applicationShouldHandleReopen:hasVisibleWindows:))]
         fn should_handle_reopen(&self, _app: &NSApplication, _visible: bool) -> bool {
             crate::tray::open_window();

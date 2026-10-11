@@ -1,5 +1,5 @@
 //! Notifications for finished and failed downloads: Windows toasts, desktop notifications over
-//! D-Bus on Linux, the Notification Center on macOS. A click on one brings Snag's window to the
+//! D-Bus on Linux, the Notification Center on macOS. A click on one brings Katch's window to the
 //! front, from the tray too.
 
 use crate::state::Note;
@@ -10,7 +10,8 @@ use std::path::Path;
 #[cfg(not(target_os = "macos"))]
 const CLICK_WAIT: std::time::Duration = std::time::Duration::from_secs(30);
 
-/// The identity Windows shows toasts under (registered per user at start-up).
+/// The identity Windows shows toasts under (registered per user at start-up). Named before the
+/// rename to Katch and kept: Windows files the user's notification settings under it.
 #[cfg(windows)]
 pub const APP_ID: &str = "Snag.DownloadManager";
 
@@ -22,7 +23,7 @@ pub fn register(data_dir: &Path) {
     let _ = std::fs::write(&icon, ico_from_rgba(64, 64, crate::tray::ICON_64));
     let hkcu = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
     if let Ok((key, _)) = hkcu.create_subkey(format!(r"Software\Classes\AppUserModelId\{APP_ID}")) {
-        let _ = key.set_value("DisplayName", &"Snag");
+        let _ = key.set_value("DisplayName", &"Katch");
         let _ = key.set_value("IconUri", &icon.display().to_string());
     }
 }
@@ -76,7 +77,7 @@ pub fn register(data_dir: &Path) {
     }
 }
 
-/// macOS: notifications come from Snag.app (its name and icon) by its bundle identifier. Not set
+/// macOS: notifications come from Katch.app (its name and icon) by its bundle identifier. Not set
 /// when that app isn't installed (a bare `cargo run`): they then come from the default app.
 #[cfg(target_os = "macos")]
 pub fn register(_data_dir: &Path) {
@@ -84,7 +85,7 @@ pub fn register(_data_dir: &Path) {
 }
 
 /// macOS: one Notification Center notification (blocking: call off the UI thread). A click on it
-/// activates Snag.app (the notifications go out under its bundle identifier); waiting for the
+/// activates Katch.app (the notifications go out under its bundle identifier); waiting for the
 /// click here isn't bounded (mac-notification-sys blocks until the notification is clicked or
 /// cleared from the Notification Center, which can be days), so it isn't waited for.
 #[cfg(target_os = "macos")]
@@ -97,7 +98,7 @@ pub fn show(note: &Note) {
 #[cfg(target_os = "linux")]
 pub fn show(note: &Note) {
     let mut n = notify_rust::Notification::new();
-    n.appname("Snag").summary(&note.title).body(&note.body).action(CLICK, "Open Snag");
+    n.appname("Katch").summary(&note.title).body(&note.body).action(CLICK, "Open Katch");
     match ICON.get() {
         Some(icon) => n.icon(&icon.to_string_lossy()),
         None => n.icon("snag"),
@@ -175,8 +176,8 @@ mod real {
     use std::time::Duration;
 
     /// A click on a real toast runs its handler: `cargo test -p rdm-app real_toast_click --
-    /// --ignored --nocapture`, then click the toast within 30 s. It shows under Snag's toast
-    /// identity as already registered (run Snag once first) and writes nothing.
+    /// --ignored --nocapture`, then click the toast within 30 s. It shows under Katch's toast
+    /// identity as already registered (run Katch once first) and writes nothing.
     #[test]
     #[ignore]
     fn real_toast_click() {
@@ -194,7 +195,7 @@ mod real {
     fn real_toast() {
         let dir = rdm_core::store::data_dir(&std::env::var_os("APPDATA").map(std::path::PathBuf::from).unwrap_or_default());
         super::register(&dir);
-        let r = tauri_winrt_notification::Toast::new(super::APP_ID).title("Snag notifications work").text1("You'll see one of these when a download finishes.").show();
+        let r = tauri_winrt_notification::Toast::new(super::APP_ID).title("Katch notifications work").text1("You'll see one of these when a download finishes.").show();
         assert!(r.is_ok(), "{r:?}");
     }
 }

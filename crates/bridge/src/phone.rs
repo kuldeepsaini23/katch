@@ -101,14 +101,14 @@ fn escape(s: &str) -> String {
 
 async fn page(State(manager): State<Manager>, Query(p): Query<Params>) -> (StatusCode, Html<String>) {
     if !token_ok(&manager, &p.t).await {
-        return (StatusCode::UNAUTHORIZED, Html("<h1>Scan the QR code in Snag → Settings → Extension</h1>".into()));
+        return (StatusCode::UNAUTHORIZED, Html("<h1>Scan the QR code in Katch → Settings → Extension</h1>".into()));
     }
     let token = escape(&p.t);
     (
         StatusCode::OK,
         Html(format!(
-            "<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Snag</title><style>{STYLE}</style></head>\
-<body><h1>Send to Snag</h1><p>Paste a link (video, file, torrent…). It downloads on your PC.</p>\
+            "<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Katch</title><style>{STYLE}</style></head>\
+<body><h1>Send to Katch</h1><p>Paste a link (video, file, torrent…). It downloads on your PC.</p>\
 <form action=/share method=get><input type=hidden name=t value=\"{token}\"><input name=text placeholder='Paste a link' autofocus>\
 <button>Download on PC</button></form><p>Tip: add this page to your home screen.</p></body></html>"
         )),
@@ -139,7 +139,7 @@ async fn share(State(manager): State<Manager>, Query(p): Query<Params>) -> (Stat
     (
         StatusCode::OK,
         Html(format!(
-            "<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'><style>{STYLE}</style><h1>Sent to Snag ✓</h1><p>{}</p><p><a style='color:#d9682b' href='/m?t={}'>Send another</a></p>",
+            "<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'><style>{STYLE}</style><h1>Sent to Katch ✓</h1><p>{}</p><p><a style='color:#d9682b' href='/m?t={}'>Send another</a></p>",
             escape(&link),
             escape(&p.t)
         )),

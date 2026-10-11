@@ -19,7 +19,7 @@ function isLight(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.18;
 }
 
-// Recolours this page the way Snag's accent setting recolours the app. Set out like the chips
+// Recolours this page the way Katch's accent setting recolours the app. Set out like the chips
 // of a paint catalogue: a swatch with its name under it.
 export function AccentPicker() {
   const [accent, setAccent] = useState(swatches[0].value);

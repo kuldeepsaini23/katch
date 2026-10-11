@@ -28,16 +28,16 @@ const jetbrains = JetBrains_Mono({
 });
 
 const description =
-  "Snag is a free, open-source download manager for Windows, macOS and Linux. It catches any video like IDM, downloads files over 8 connections at once, and keeps everything on your PC.";
+  "Katch is a free, open-source download manager for Windows, macOS and Linux. It catches any video like IDM, downloads files over 8 connections at once, and keeps everything on your PC.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Snag — the fast, free download manager for Windows, macOS & Linux",
-    template: "%s · Snag",
+    default: "Katch — the fast, free download manager for Windows, macOS & Linux",
+    template: "%s · Katch",
   },
   description,
-  applicationName: "Snag",
+  applicationName: "Katch",
   authors: [{ name: "Kuldeep Saini", url: "https://github.com/kuldeepsaini23" }],
   keywords: [
     "download manager",
@@ -54,14 +54,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "Snag",
-    title: "Snag — the fast, free download manager for Windows, macOS & Linux",
+    siteName: "Katch",
+    title: "Katch — the fast, free download manager for Windows, macOS & Linux",
     description: PITCH,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Snag downloading files, next to its name and pitch" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Katch downloading files, next to its name and pitch" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Snag — the fast, free download manager for Windows, macOS & Linux",
+    title: "Katch — the fast, free download manager for Windows, macOS & Linux",
     description: PITCH,
     images: ["/og.png"],
   },

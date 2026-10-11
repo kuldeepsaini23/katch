@@ -22,7 +22,7 @@ pub struct Diagnostics<'a> {
 }
 
 /// Where bug reports are filed.
-const ISSUES: &str = "https://github.com/kuldeepsaini23/snag/issues/new";
+const ISSUES: &str = "https://github.com/kuldeepsaini23/katch/issues/new";
 /// Longer links than this fail on GitHub (or in the browser); the report is pasted instead.
 const ISSUE_URL_MAX: usize = 7000;
 
@@ -40,7 +40,7 @@ pub fn issue_url(what: &str, report: &str) -> String {
     }
     let note = "
 
-The full report from Snag is copied: press Ctrl+V here to paste it.";
+The full report from Katch is copied: press Ctrl+V here to paste it.";
     // As much of what the user typed as fits (non-English text takes up to 9 characters each).
     let mut budget = ISSUE_URL_MAX - link(note).len();
     let mut short = String::new();
@@ -55,16 +55,16 @@ The full report from Snag is copied: press Ctrl+V here to paste it.";
     link(&(short + note))
 }
 
-/// `Snag-bug-report-2026-10-07.txt`
+/// `Katch-bug-report-2026-10-07.txt`
 pub fn file_name(date: chrono::NaiveDate) -> String {
-    format!("Snag-bug-report-{}.txt", date.format("%Y-%m-%d"))
+    format!("Katch-bug-report-{}.txt", date.format("%Y-%m-%d"))
 }
 
 /// The report: `what` the user typed, `stamp` the local time it was written.
 pub fn build(what: &str, stamp: &str, diagnostics: Option<&Diagnostics>) -> String {
     let what = what.trim();
     let mut out = format!(
-        "Snag bug report · {stamp}\nSnag {}\n\nWhat happened\n-------------\n{}\n",
+        "Katch bug report · {stamp}\nKatch {}\n\nWhat happened\n-------------\n{}\n",
         crate::changelog::VERSION,
         if what.is_empty() { "(not filled in)" } else { what }
     );
@@ -268,7 +268,7 @@ mod tests {
             name: format!("file {id}.zip"),
             category: Category::Archive,
             status,
-            dest: Some(format!(r"C:\Users\alice\Downloads\Snag\file {id}.zip").into()),
+            dest: Some(format!(r"C:\Users\alice\Downloads\Katch\file {id}.zip").into()),
             downloaded: 0,
             total: None,
             speed_bps: 0,
@@ -286,7 +286,7 @@ mod tests {
     }
 
     fn settings() -> Settings {
-        Settings { extension_token: TOKEN.into(), download_dir: r"C:\Users\alice\Downloads\Snag".into(), ..Settings::default() }
+        Settings { extension_token: TOKEN.into(), download_dir: r"C:\Users\alice\Downloads\Katch".into(), ..Settings::default() }
     }
 
     fn report(what: &str, log: &str, with: bool) -> String {
@@ -307,7 +307,7 @@ mod tests {
         let url = issue_url("Video stuck at 99%
 It was a YouTube live stream.", "REPORT & more
 line 2");
-        assert!(url.starts_with("https://github.com/kuldeepsaini23/snag/issues/new?"), "{url}");
+        assert!(url.starts_with("https://github.com/kuldeepsaini23/katch/issues/new?"), "{url}");
         assert!(url.contains("title=Video%20stuck%20at%2099%25"), "first line as the title: {url}");
         assert!(url.contains("body=REPORT%20%26%20more%0Aline%202"), "the whole report, encoded: {url}");
         assert!(url.contains("labels=bug"));
@@ -332,7 +332,7 @@ line 2");
             "2026-10-07 13:00:00  Phone link http://192.168.1.5:47330/{TOKEN}\n\
              2026-10-07 13:01:00  clip.mp4 failed: HTTP 403 for https://rr3.googlevideo.com/videoplayback?expire=1&sig=SECRETSIG\n\
              2026-10-07 13:02:00  Couldn't write C:\\Users\\alice\\Videos\\clip.mp4\n\
-             2026-10-07 13:03:00  c:\\users\\ALICE\\AppData\\Roaming\\Snag\\cookies\\youtube.txt is gone\n\
+             2026-10-07 13:03:00  c:\\users\\ALICE\\AppData\\Roaming\\Katch\\cookies\\youtube.txt is gone\n\
              2026-10-07 13:04:00  share.zip failed: https://mega.nz/file/AbC#DECRYPTKEY\n"
         );
         let text = report("It froze. My code is pasted nowhere.", &log, true);
@@ -341,7 +341,7 @@ line 2");
         assert!(!text.contains("SECRETSIG"), "link parameters (signed links, sessions)");
         assert!(!text.contains("DECRYPTKEY"), "a link's #part (file keys live there)");
         assert!(!text.to_lowercase().contains("alice"), "the user's name in paths");
-        assert!(text.contains(&format!(r"{HOME_MASK}\Downloads\Snag")), "folder names stay readable");
+        assert!(text.contains(&format!(r"{HOME_MASK}\Downloads\Katch")), "folder names stay readable");
         assert!(text.contains("https://rr3.googlevideo.com/videoplayback?…"), "the link minus its parameters");
         // Settings added later that hold secrets are dropped by name.
         let value = serde_json::json!({ "accent": "#fff", "browser_cookies": "SID=1", "virustotal_key": "vt", "nested": { "api_token": "x", "password": "y", "keep": 1, "keep_sharing": true } });
@@ -354,7 +354,7 @@ line 2");
         std::fs::write(data.path().join("snag.log"), format!("2026-10-07 13:00:00  clip.mp4 failed: HTTP 403 ({TOKEN})\n")).unwrap();
         let (file, text) = save("Stuck at 0 B".into(), true, settings(), vec![item(1, Status::Paused)], data.path().into(), desk.path().into()).await.expect("written");
         assert_eq!(file.parent(), Some(desk.path()));
-        assert!(file.file_name().unwrap().to_string_lossy().starts_with("Snag-bug-report-"));
+        assert!(file.file_name().unwrap().to_string_lossy().starts_with("Katch-bug-report-"));
         let on_disk = std::fs::read_to_string(&file).unwrap();
         assert_eq!(on_disk.replace("\r\n", "\n"), text, "the file is what gets copied (Notepad line ends)");
         for want in ["Stuck at 0 B", "yt-dlp: not downloaded yet", "clip.mp4 failed: HTTP 403", "1 paused"] {
@@ -385,7 +385,7 @@ line 2");
         for want in [
             "The Download button did nothing.",
             "2026-10-07 14:02",
-            &format!("Snag {}", env!("CARGO_PKG_VERSION")),
+            &format!("Katch {}", env!("CARGO_PKG_VERSION")),
             "Windows 11 24H2 (build 26200.6584)",
             "yt-dlp: 2025.09.26",
             "gallery-dl: not installed yet",
@@ -401,8 +401,8 @@ line 2");
         // Without diagnostics: just the words and the version.
         let bare = report("", &log, false);
         assert!(bare.contains("(not filled in)"));
-        assert!(bare.contains(&format!("Snag {}", env!("CARGO_PKG_VERSION"))));
+        assert!(bare.contains(&format!("Katch {}", env!("CARGO_PKG_VERSION"))));
         assert!(!bare.contains("Windows") && !bare.contains("entry") && !bare.contains("connections"), "{bare}");
-        assert_eq!(file_name(chrono::NaiveDate::from_ymd_opt(2026, 10, 7).unwrap()), "Snag-bug-report-2026-10-07.txt");
+        assert_eq!(file_name(chrono::NaiveDate::from_ymd_opt(2026, 10, 7).unwrap()), "Katch-bug-report-2026-10-07.txt");
     }
 }

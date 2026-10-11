@@ -1,4 +1,4 @@
-//! Where things live on this system: the home folder, Snag's data folder, Downloads and Desktop.
+//! Where things live on this system: the home folder, Katch's data folder, Downloads and Desktop.
 //! Windows keeps its long-standing places (`%APPDATA%\Snag`, `%USERPROFILE%\Downloads`); Linux
 //! follows the XDG base and user directories; macOS uses `~/Library/Application Support/Snag`.
 
@@ -10,9 +10,10 @@ pub fn home() -> PathBuf {
     std::env::var_os(var).map(PathBuf::from).unwrap_or_default()
 }
 
-/// Snag's own folder: state.json, the log, its tools (`bin/`) and updates.
+/// Katch's own folder: state.json, the log, its tools (`bin/`) and updates.
 /// `%APPDATA%\Snag` on Windows; `$XDG_DATA_HOME/snag` (`~/.local/share/snag`) on Linux;
-/// `~/Library/Application Support/Snag` on macOS.
+/// `~/Library/Application Support/Snag` on macOS. (Named before the rename to Katch and kept, so
+/// settings and history carry over.)
 pub fn app_dir() -> PathBuf {
     if cfg!(windows) {
         crate::store::data_dir(&std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_default())

@@ -30,7 +30,7 @@ pub fn system_light() -> bool {
 }
 
 /// Linux: the desktop's style (GNOME's `color-scheme`, which the desktop portal and most
-/// desktops follow): light unless it prefers dark. No GNOME settings: dark, Snag's own default.
+/// desktops follow): light unless it prefers dark. No GNOME settings: dark, Katch's own default.
 #[cfg(target_os = "linux")]
 pub fn system_light() -> bool {
     gsetting("color-scheme").is_some_and(|v| light_from_color_scheme(&v))

@@ -59,7 +59,7 @@ test("each subtitle file is listed once, and learns its language", () => {
   assert.strictEqual(list.items.length, 3, "capped");
 });
 
-test("what goes to Snag: the page's tracks (their language wins) and what the player fetched", () => {
+test("what goes to Katch: the page's tracks (their language wins) and what the player fetched", () => {
   const sniffed = [
     { url: "https://cdn.x/subs/sintel_eng.vtt", lang: "en" },
     { url: "https://cdn.x/subs/other.srt" },

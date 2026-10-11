@@ -15,21 +15,21 @@ pub const THEME_HINT: &str = if cfg!(windows) {
 } else {
     "Follow system switches with your desktop's light or dark style"
 };
-/// The kind of notification Snag sends.
+/// The kind of notification Katch sends.
 pub const NOTIFICATIONS: &str = if cfg!(windows) { "Windows notifications" } else { "Desktop notifications" };
 pub const NOTIFY_HINT: &str =
     if cfg!(windows) { "A Windows notification when a download finishes or fails" } else { "A desktop notification when a download finishes or fails" };
 /// Phone sharing listens on the network, which a firewall may ask about.
 pub const SHARING_HINT: &str = if cfg!(windows) {
-    "Send links from your phone. Windows may ask to allow Snag on private networks"
+    "Send links from your phone. Windows may ask to allow Katch on private networks"
 } else {
-    "Send links from your phone. A firewall may need to allow Snag on your network"
+    "Send links from your phone. A firewall may need to allow Katch on your network"
 };
 /// What closing the window does (Help → Basics).
 pub const CLOSE_HINT: &str = if cfg!(target_os = "macos") {
-    "Closing the window keeps Snag downloading in the menu bar. Quit from its menu bar icon or with Cmd + Q."
+    "Closing the window keeps Katch downloading in the menu bar. Quit from its menu bar icon or with Cmd + Q."
 } else {
-    "Closing the window keeps Snag downloading in the tray. Quit from the tray icon."
+    "Closing the window keeps Katch downloading in the tray. Quit from the tray icon."
 };
 /// Where the data folder is, as people would type it.
 pub const DATA_DIR: &str = if cfg!(windows) {
@@ -49,11 +49,11 @@ pub const LOG_HINT: &str = if cfg!(windows) {
 };
 /// What "Include diagnostics" adds to a bug report.
 pub const DIAGNOSTICS_HINT: &str = if cfg!(windows) {
-    "Snag and Windows versions, yt-dlp and gallery-dl versions, your settings without the pairing code, how many downloads are in each state, and the last 50 lines of Snag's log. Link parameters and your user name in paths are left out."
+    "Katch and Windows versions, yt-dlp and gallery-dl versions, your settings without the pairing code, how many downloads are in each state, and the last 50 lines of Katch's log. Link parameters and your user name in paths are left out."
 } else if cfg!(target_os = "macos") {
-    "Snag and macOS versions, yt-dlp and gallery-dl versions, your settings without the pairing code, how many downloads are in each state, and the last 50 lines of Snag's log. Link parameters and your user name in paths are left out."
+    "Katch and macOS versions, yt-dlp and gallery-dl versions, your settings without the pairing code, how many downloads are in each state, and the last 50 lines of Katch's log. Link parameters and your user name in paths are left out."
 } else {
-    "Snag and Linux versions, yt-dlp and gallery-dl versions, your settings without the pairing code, how many downloads are in each state, and the last 50 lines of Snag's log. Link parameters and your user name in paths are left out."
+    "Katch and Linux versions, yt-dlp and gallery-dl versions, your settings without the pairing code, how many downloads are in each state, and the last 50 lines of Katch's log. Link parameters and your user name in paths are left out."
 };
 
 /// A file with its usual program, a folder in a file manager window, or a link in the browser.
@@ -75,8 +75,8 @@ pub fn open(target: impl AsRef<OsStr>) {
 }
 
 /// Linux: a program of the desktop's (xdg-open, the file manager, gsettings), started without
-/// what the AppImage's launcher set up for Snag itself: paths into its bundle (`$APPDIR/…`) would
-/// break the programs it starts, and vanish when Snag exits.
+/// what the AppImage's launcher set up for Katch itself: paths into its bundle (`$APPDIR/…`) would
+/// break the programs it starts, and vanish when Katch exits.
 #[cfg(target_os = "linux")]
 pub fn host_command(program: impl AsRef<OsStr>) -> std::process::Command {
     let mut cmd = std::process::Command::new(program);
@@ -168,10 +168,27 @@ pub fn file_uri(path: &Path) -> String {
     format!("file://{}", utf8_percent_encode(&path.to_string_lossy(), KEEP))
 }
 
-/// Linux: `~/.config/autostart/snag.desktop`, which the desktop runs at sign-in.
+/// Linux: `~/.config/autostart/snag.desktop`, which the desktop runs at sign-in. (Named before
+/// the rename to Katch and kept: a new name would leave the old entry starting it a second time.)
 #[cfg(target_os = "linux")]
 fn autostart_file() -> std::path::PathBuf {
     rdm_core::dirs::config_home().join("autostart").join("snag.desktop")
+}
+
+/// Linux: an autostart entry written before the rename shows as "Snag" in the desktop's list of
+/// startup programs; its name is brought up to date, the rest left as it is.
+#[cfg(target_os = "linux")]
+pub fn rename_autostart_entry() {
+    let file = autostart_file();
+    if let Some(renamed) = std::fs::read_to_string(&file).ok().and_then(|entry| renamed_entry(&entry)) {
+        let _ = std::fs::write(&file, renamed);
+    }
+}
+
+/// `entry` with `Name=Katch` for the `Name=Snag` it had before the rename; `None` when it has none.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn renamed_entry(entry: &str) -> Option<String> {
+    entry.contains("\nName=Snag\n").then(|| entry.replacen("\nName=Snag\n", "\nName=Katch\n", 1))
 }
 
 /// macOS: `~/Library/LaunchAgents/dev.kuldeepsaini.snag.plist`, which launchd runs at login.
@@ -180,11 +197,12 @@ fn autostart_file() -> std::path::PathBuf {
     rdm_core::dirs::home().join("Library").join("LaunchAgents").join(format!("{BUNDLE_ID}.plist"))
 }
 
-/// The app's bundle identifier (packaging/macos/Info.plist), also the LaunchAgent's label.
+/// The app's bundle identifier (packaging/macos/Info.plist), also the LaunchAgent's label. Named
+/// before the rename to Katch and kept: macOS files the app's permissions and notifications under it.
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub const BUNDLE_ID: &str = "dev.kuldeepsaini.snag";
 
-/// Linux, macOS: Snag starts (in the tray or menu bar, no window) when you sign in.
+/// Linux, macOS: Katch starts (in the tray or menu bar, no window) when you sign in.
 #[cfg(unix)]
 pub fn autostart() -> bool {
     autostart_file().exists()
@@ -196,7 +214,7 @@ pub fn autostart() -> bool {
 }
 
 /// Linux, macOS: writes or removes the autostart entry. The AppImage is started through
-/// `$APPIMAGE` (the mounted copy's path changes every run); on macOS the program inside Snag.app.
+/// `$APPIMAGE` (the mounted copy's path changes every run); on macOS the program inside Katch.app.
 #[cfg(unix)]
 pub fn set_autostart(on: bool) -> Result<(), String> {
     let file = autostart_file();
@@ -206,7 +224,7 @@ pub fn set_autostart(on: bool) -> Result<(), String> {
             _ => Ok(()),
         };
     }
-    let exe = std::env::var_os("APPIMAGE").map(std::path::PathBuf::from).or_else(|| std::env::current_exe().ok()).ok_or("Couldn't find Snag's own program file")?;
+    let exe = std::env::var_os("APPIMAGE").map(std::path::PathBuf::from).or_else(|| std::env::current_exe().ok()).ok_or("Couldn't find Katch's own program file")?;
     #[cfg(target_os = "macos")]
     let entry = launch_agent(&exe);
     #[cfg(not(target_os = "macos"))]
@@ -224,7 +242,7 @@ pub fn set_autostart(_on: bool) -> Result<(), String> {
 }
 
 /// macOS: the LaunchAgent that starts `exe --background` at login (only in the user's graphical
-/// session, once: it isn't restarted when you quit Snag).
+/// session, once: it isn't restarted when you quit Katch).
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub fn launch_agent(exe: &Path) -> String {
     let exe = exe.to_string_lossy().replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
@@ -256,7 +274,7 @@ pub fn launch_agent(exe: &Path) -> String {
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub fn autostart_entry(exe: &Path) -> String {
     format!(
-        "[Desktop Entry]\nType=Application\nName=Snag\nComment=Download manager (waits in the tray)\nExec={} --background\nIcon=snag\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
+        "[Desktop Entry]\nType=Application\nName=Katch\nComment=Download manager (waits in the tray)\nExec={} --background\nIcon=snag\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
         desktop_exec_arg(&exe.to_string_lossy())
     )
 }
@@ -299,7 +317,7 @@ mod tests {
     fn programs_snag_starts_leave_the_appimage_behind() {
         let vars = [
             ("APPDIR", "/tmp/.mount_SnagAb"),
-            ("APPIMAGE", "/home/a/Snag-x86_64.AppImage"),
+            ("APPIMAGE", "/home/a/Katch-x86_64.AppImage"),
             ("GDK_PIXBUF_MODULE_FILE", "/tmp/.mount_SnagAb/usr/lib/loaders.cache"),
             ("XDG_DATA_DIRS", "/tmp/.mount_SnagAb/usr/share:/usr/local/share:/usr/share"),
             ("PATH", "/tmp/.mount_SnagAb/usr/bin:/usr/bin"),
@@ -320,19 +338,29 @@ mod tests {
 
     #[test]
     fn the_launch_agent_runs_snag_in_the_menu_bar() {
-        let plist = launch_agent(Path::new("/Applications/Snag & Co.app/Contents/MacOS/snag"));
+        let plist = launch_agent(Path::new("/Applications/Katch & Co.app/Contents/MacOS/snag"));
         assert!(plist.contains("<string>dev.kuldeepsaini.snag</string>"), "{plist}");
-        assert!(plist.contains("<string>/Applications/Snag &amp; Co.app/Contents/MacOS/snag</string>\n\t\t<string>--background</string>"), "{plist}");
+        assert!(plist.contains("<string>/Applications/Katch &amp; Co.app/Contents/MacOS/snag</string>\n\t\t<string>--background</string>"), "{plist}");
         assert!(plist.contains("<key>RunAtLoad</key>\n\t<true/>"), "{plist}");
-        assert!(!plist.contains("KeepAlive"), "quitting Snag keeps it quit");
+        assert!(!plist.contains("KeepAlive"), "quitting Katch keeps it quit");
     }
 
     #[test]
     fn the_autostart_entry_runs_snag_in_the_tray() {
-        let entry = autostart_entry(Path::new("/home/a/Apps/Snag-x86_64.AppImage"));
+        let entry = autostart_entry(Path::new("/home/a/Apps/Katch-x86_64.AppImage"));
         assert!(entry.starts_with("[Desktop Entry]\n"), "{entry}");
-        assert!(entry.contains("\nExec=/home/a/Apps/Snag-x86_64.AppImage --background\n"), "{entry}");
+        assert!(entry.contains("\nExec=/home/a/Apps/Katch-x86_64.AppImage --background\n"), "{entry}");
         let spaced = autostart_entry(Path::new("/home/a/My Apps/100% $nag.AppImage"));
         assert!(spaced.contains(r#"Exec="/home/a/My Apps/100%% \\$nag.AppImage" --background"#), "{spaced}");
+    }
+
+    #[test]
+    fn an_autostart_entry_from_before_the_rename_gets_katchs_name() {
+        let new = autostart_entry(Path::new("/home/a/Apps/Snag-x86_64.AppImage"));
+        assert!(new.contains("\nName=Katch\n"), "{new}");
+        assert_eq!(renamed_entry(&new), None, "already Katch's");
+        let old = new.replace("\nName=Katch\n", "\nName=Snag\n");
+        assert_eq!(renamed_entry(&old).as_deref(), Some(new.as_str()), "only the name changes: the program it starts stays");
+        assert_eq!(renamed_entry("[Desktop Entry]\nName=Snagger\n"), None);
     }
 }

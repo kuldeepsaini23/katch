@@ -1,4 +1,4 @@
-"""Exports Snag's logo to every place that uses it. Run from the repo root:
+"""Exports Katch's logo to every place that uses it. Run from the repo root:
 
     python docs/logo/export.py
 

@@ -12,7 +12,7 @@ export function SiteFooter() {
           <Logo />
           <p className="text-sm text-faint">MIT © 2026 Kuldeep Saini</p>
           <p className="font-display text-sm text-faint italic">
-            Set in Fraunces, Inter and JetBrains Mono. Snag itself is written in Rust.
+            Set in Fraunces, Inter and JetBrains Mono. Katch itself is written in Rust.
           </p>
         </div>
         <nav aria-label="Footer">

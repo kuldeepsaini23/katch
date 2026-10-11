@@ -1150,7 +1150,7 @@ async fn an_update_is_downloaded_only_when_it_matches_its_checksum() {
     let good = format!("{:x}", sha2::Sha256::digest(&setup));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let base = format!("http://{}", listener.local_addr().unwrap());
-    // This platform's installer: Snag-Setup-9.9.9.exe on Windows, Snag-x86_64.AppImage on Linux.
+    // This platform's installer: Katch-Setup-9.9.9.exe on Windows, Katch-x86_64.AppImage on Linux.
     let name = rdm_core::selfupdate::Platform::CURRENT.installer_name("9.9.9");
     let latest = format!(
         r#"{{"tag_name":"v9.9.9","draft":false,"prerelease":false,"html_url":"{base}/page","assets":[
@@ -1203,7 +1203,7 @@ async fn a_download_refused_for_stale_cookies_is_retried_without_them() {
     assert_eq!(item.status, Status::Done, "fetched without the stale cookies");
 }
 
-/// Real network: the published latest release as Snag sees it. Run with --ignored.
+/// Real network: the published latest release as Katch sees it. Run with --ignored.
 #[tokio::test]
 #[ignore]
 async fn real_latest_release_from_github() {

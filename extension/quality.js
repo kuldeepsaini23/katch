@@ -14,7 +14,7 @@ function height(format) {
   return (inner && inner.max_height) || 0;
 }
 
-/** Snag's options as rows: best video first, audio last. `format` goes back to /add-media. */
+/** Katch's options as rows: best video first, audio last. `format` goes back to /add-media. */
 function qualityRows(info) {
   return (info.options || [])
     .map((o) => {
@@ -25,7 +25,7 @@ function qualityRows(info) {
     .sort((a, b) => b.height - a.height);
 }
 
-/** Snag's accent colour, only if it really is a hex colour (it ends up in CSS). */
+/** Katch's accent colour, only if it really is a hex colour (it ends up in CSS). */
 function safeAccent(value) {
   return typeof value === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value) ? value : DEFAULT_ACCENT;
 }
@@ -48,7 +48,7 @@ function sniffedRows(items) {
 }
 
 /**
- * Snag's reading of a page, started early (prefetch) and shared by whoever asks: one read per
+ * Katch's reading of a page, started early (prefetch) and shared by whoever asks: one read per
  * page; answers kept for `ttlMs` (the links inside them expire), failures not kept at all.
  */
 class ProbeCache {
@@ -84,7 +84,7 @@ function pageKey(href) {
 }
 
 /**
- * When the in-page button may start Snag reading the page before any click: only on known
+ * When the in-page button may start Katch reading the page before any click: only on known
  * video pages (`isVideo(hostname, pathname)`), once per page, and only after its address has
  * held still for `settleMs` (single-page sites change it several times while loading).
  */
@@ -131,9 +131,9 @@ function fullSizeImage(url) {
 }
 
 /**
- * What a right-click "Download with Snag" sends. An image or a video element's own file goes
+ * What a right-click "Download with Katch" sends. An image or a video element's own file goes
  * straight in as a file (instant, like IDM), even when it sits inside a link; a link is left for
- * Snag to sort out; a player with no real file (blob:) sends its page instead.
+ * Katch to sort out; a player with no real file (blob:) sends its page instead.
  */
 function contextTarget(info) {
   const page = info.pageUrl;
@@ -147,7 +147,7 @@ function contextTarget(info) {
   return { url: info.linkUrl || info.srcUrl || page, kind: undefined, referrer: page };
 }
 
-const RELOAD = "Snag's extension was updated: reload this page";
+const RELOAD = "Katch's extension was updated: reload this page";
 
 /**
  * `runtime.sendMessage` as a promise that always settles: a page script cut off by an extension
@@ -156,7 +156,7 @@ const RELOAD = "Snag's extension was updated: reload this page";
 function makeAsk(runtime, timeoutMs) {
   return (msg) =>
     new Promise((resolve) => {
-      const timer = setTimeout(() => resolve({ ok: false, error: "Snag gave no answer. Is it running?" }), timeoutMs);
+      const timer = setTimeout(() => resolve({ ok: false, error: "Katch gave no answer. Is it running?" }), timeoutMs);
       const settle = (r) => {
         clearTimeout(timer);
         resolve(r);

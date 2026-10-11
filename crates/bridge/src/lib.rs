@@ -48,7 +48,7 @@ async fn ping(State(manager): State<Manager>, headers: HeaderMap) -> Json<Value>
     let paired = authorized(&manager, &headers).await;
     let mut body = json!({ "app": "rdm", "version": env!("CARGO_PKG_VERSION"), "paired": paired });
     if paired {
-        // The extension's button and popup follow Snag's accent colour.
+        // The extension's button and popup follow Katch's accent colour.
         body["accent"] = json!(manager.settings().await.accent);
     }
     Json(body)
@@ -83,7 +83,7 @@ fn subtitle_links(list: Vec<Value>) -> Vec<rdm_core::SubtitleLink> {
 
 async fn add(State(manager): State<Manager>, headers: HeaderMap, Json(mut req): Json<AddRequest>) -> (StatusCode, Json<Value>) {
     if !authorized(&manager, &headers).await {
-        return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired: paste the pairing code from Snag settings" })));
+        return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired: paste the pairing code from Katch settings" })));
     }
     // A GitHub repository's page: its code as a ZIP.
     if let Some(zip) = rdm_core::route::github_zip(&req.url) {
@@ -101,13 +101,13 @@ async fn add(State(manager): State<Manager>, headers: HeaderMap, Json(mut req): 
     let referrer = req.referrer.filter(|r| r.starts_with("http"));
     let subtitles = subtitle_links(req.subtitles);
     if !subtitles.is_empty() {
-        // For the stream the page played too, in case Snag can't read the page and falls back on it.
+        // For the stream the page played too, in case Katch can't read the page and falls back on it.
         if let Some(stream) = req.fallback.as_ref().filter(|f| f.starts_with("http")) {
             manager.remember_subtitles(stream.clone(), subtitles.clone());
         }
         manager.remember_subtitles(req.url.clone(), subtitles);
     }
-    // "Save page with Snag": the page itself, as one offline file.
+    // "Save page with Katch": the page itself, as one offline file.
     if req.kind.as_deref() == Some("page") {
         let id = manager.save_page(req.url).await;
         return (StatusCode::OK, Json(json!({ "id": id.0 })));
@@ -269,7 +269,7 @@ async fn add_media_choice(State(manager): State<Manager>, headers: HeaderMap, Js
     (StatusCode::OK, Json(json!({ "id": id.0 })))
 }
 
-/// One-click pairing: a browser extension asks, the user allows it in Snag, the extension gets
+/// One-click pairing: a browser extension asks, the user allows it in Katch, the extension gets
 /// the code. Only extensions can ask (websites send their own origin), and without CORS
 /// headers no website could read the answer anyway. The question names the asking extension,
 /// and while it is up no other request can replace it.
@@ -277,15 +277,15 @@ async fn pair(State(manager): State<Manager>, headers: HeaderMap) -> (StatusCode
     let origin = headers.get("origin").and_then(|v| v.to_str().ok()).unwrap_or("");
     let extension = ["chrome-extension://", "moz-extension://", "safari-web-extension://"].iter().any(|p| origin.starts_with(p));
     if !extension {
-        return (StatusCode::FORBIDDEN, Json(json!({ "error": "only the Snag browser extension can connect" })));
+        return (StatusCode::FORBIDDEN, Json(json!({ "error": "only the Katch browser extension can connect" })));
     }
     match manager.request_pair(origin.to_string()).await {
         PairAnswer::Allowed => {
             let token = manager.settings().await.extension_token;
             (StatusCode::OK, Json(json!({ "token": token })))
         }
-        PairAnswer::Refused => (StatusCode::FORBIDDEN, Json(json!({ "error": "not allowed in Snag" }))),
-        PairAnswer::Busy => (StatusCode::CONFLICT, Json(json!({ "error": "another connection request is waiting in Snag" }))),
+        PairAnswer::Refused => (StatusCode::FORBIDDEN, Json(json!({ "error": "not allowed in Katch" }))),
+        PairAnswer::Busy => (StatusCode::CONFLICT, Json(json!({ "error": "another connection request is waiting in Katch" }))),
     }
 }
 
@@ -304,7 +304,7 @@ struct BatchRequest {
 /// "Grab all" from the extension: direct links from one page, each added as a file download.
 async fn add_batch(State(manager): State<Manager>, headers: HeaderMap, Json(req): Json<BatchRequest>) -> (StatusCode, Json<Value>) {
     if !authorized(&manager, &headers).await {
-        return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired: paste the pairing code from Snag settings" })));
+        return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired: paste the pairing code from Katch settings" })));
     }
     if req.urls.len() > BATCH_MAX {
         return (StatusCode::BAD_REQUEST, Json(json!({ "error": format!("at most {BATCH_MAX} links at once") })));

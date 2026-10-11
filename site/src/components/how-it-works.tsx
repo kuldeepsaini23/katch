@@ -7,22 +7,22 @@ const steps = [
   {
     numeral: "I",
     icon: DownloadSimple,
-    title: "Install Snag",
-    body: "On Windows, run the installer — it needs no admin rights. On a Mac, drag Snag to Applications. On Linux, run the AppImage or install the .deb.",
+    title: "Install Katch",
+    body: "On Windows, run the installer — it needs no admin rights. On a Mac, drag Katch to Applications. On Linux, run the AppImage or install the .deb.",
     hint: `${INSTALLER_NAME} · 12 MB`,
   },
   {
     numeral: "II",
     icon: Plug,
     title: "Connect the browser extension",
-    body: "Click the Snag icon in your browser, then Connect to Snag, and press Allow in Snag. You do this once.",
+    body: "Click the Katch icon in your browser, then Connect to Katch, and press Allow in Katch. You do this once.",
     hint: "One click, then Allow",
   },
   {
     numeral: "III",
     icon: CursorClick,
     title: "Click Download on any video",
-    body: "A Download button appears on videos as they play. Pick a quality and Snag takes it from there.",
+    body: "A Download button appears on videos as they play. Pick a quality and Katch takes it from there.",
     hint: "1080p · 720p · MP3",
   },
 ];
@@ -82,7 +82,7 @@ export function HowItWorks() {
               </li>
             ))}
           </ul>
-          <h4 className="mt-10 font-semibold">Load it from Snag’s install folder today</h4>
+          <h4 className="mt-10 font-semibold">Load it from Katch’s install folder today</h4>
           <ol className="mt-4 grid gap-3 leading-relaxed text-muted">
             {[
               <>
@@ -90,10 +90,10 @@ export function HowItWorks() {
                 and turn on Developer mode.
               </>,
               <>
-                Click Load unpacked and pick the <code className={code}>browser-extension</code> folder in Snag’s install
+                Click Load unpacked and pick the <code className={code}>browser-extension</code> folder in Katch’s install
                 folder.
               </>,
-              <>Click the Snag icon, then Connect to Snag, and press Allow in Snag.</>,
+              <>Click the Katch icon, then Connect to Katch, and press Allow in Katch.</>,
             ].map((item, i) => (
               <li key={i} className="flex gap-4">
                 <span className="w-5 shrink-0 font-display text-lg leading-snug text-text italic">{i + 1}.</span>
@@ -107,14 +107,14 @@ export function HowItWorks() {
           </p>
         </div>
         {/* The popup set on a hatched ground inside the double rule, at its own size. */}
-        <Plate fig={6} caption="the extension’s popup, connected to Snag." className="self-start" frameClassName="hatch grid place-items-center px-6 py-10 sm:py-14">
+        <Plate fig={6} caption="the extension’s popup, connected to Katch." className="self-start" frameClassName="hatch grid place-items-center px-6 py-10 sm:py-14">
           <div className="window w-full max-w-[350px]">
             <Shot
               name="ext-popup-panel"
               widths={[350]}
               height={640}
               sizes="350px"
-              alt="The extension’s popup, connected to Snag, with switches for catching downloads and the media found on the page"
+              alt="The extension’s popup, connected to Katch, with switches for catching downloads and the media found on the page"
             />
           </div>
         </Plate>
