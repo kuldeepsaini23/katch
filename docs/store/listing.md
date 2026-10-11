@@ -48,7 +48,7 @@ Send the user's downloads — files, videos, audio and pictures from the pages t
 | `webRequest` | Reads the address, type and size of media a tab's video player loads, to offer those streams in the Download menu ("what's playing"). Requests are only observed, never changed or blocked. |
 | `scripting` | "Grab all from this page": runs a small script in the current tab, after the user clicks it, to list the page's links and pictures. |
 | `contextMenus` | The right-click items "Download with Snag" and "Save this page with Snag". |
-| `storage` | Remembers the connection code, the user's choices (button position, hidden sites, catch downloads) and links waiting for Snag to open. |
+| `storage` | Remembers the connection code, the user's choices (button position, hidden sites, catch downloads) and links waiting for Snag to open. The sites the user turned Snag off on, and whether it is paused, are kept in the browser's own synced extension storage (`storage.sync`) so they follow the user's browser sync; the developer never receives them. |
 | `alarms` | Once a minute, hands links saved while Snag was closed to Snag when it's running again. |
 | Host access `<all_urls>` | The Download button and stream detection work on any video site, and the site's cookies are needed when sending a download. |
 | Host `http://127.0.0.1/*` | The only place the extension sends data: the Snag app on the same computer. |
