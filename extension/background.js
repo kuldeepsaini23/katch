@@ -1,10 +1,10 @@
-// Snag extension background: finds the desktop app on 127.0.0.1 and hands it links.
+// Katch extension background: finds the desktop app on 127.0.0.1 and hands it links.
 // Chrome runs it as a service worker; Firefox loads catch-rules.js before it (see build.js).
 
-if (typeof importScripts === "function") importScripts("catch-rules.js", "sniffer.js", "quality.js", "later.js", "connect.js");
+if (typeof importScripts === "function") importScripts("catch-rules.js", "sniffer.js", "quality.js", "later.js", "connect.js", "site-toggle.js");
 
 const DEFAULTS = { token: "", catchDownloads: true, minSizeMB: 1 };
-// Downloads we gave back to Chrome because Snag couldn't take them: don't catch them again.
+// Downloads we gave back to Chrome because Katch couldn't take them: don't catch them again.
 const handBack = new Set();
 
 async function settings() {
@@ -17,7 +17,46 @@ const { findApp, pair, pairedApp } = makeConnection((url, opts) => fetch(url, op
   saveAccent: (accent) => chrome.storage.local.set({ accent }).catch(() => {}),
 });
 
-/** The browser's cookies for `url`, so logged-in and age-restricted downloads work in Snag. */
+// ---------- Katch off on some sites, or paused (site-toggle.js) ----------
+
+let siteToggle = loadSiteToggle(chrome.storage);
+// The toolbar badge where Katch is off: quiet, next to the copper count.
+const OFF_GREY = "#5c5650";
+
+/** Whether Katch works on the page in tab `tabId` (its address `url` when known already). */
+async function siteOn(tabId, url) {
+  const s = await siteToggle;
+  if (s.paused) return false;
+  if (!s.offSites.length || tabId === undefined || tabId < 0) return true;
+  try {
+    url ??= (await chrome.tabs.get(tabId)).url;
+    return isEnabled(new URL(url).hostname, s);
+  } catch (_) {
+    // A tab that's gone, or not a web page: nothing to turn off.
+    return true;
+  }
+}
+
+/** Whether Katch takes a download the browser started: by the page it came from (else itself). */
+async function catchesFrom(item) {
+  const s = await siteToggle;
+  if (s.paused) return false;
+  try {
+    return isEnabled(new URL(item.referrer || item.finalUrl || item.url).hostname, s);
+  } catch (_) {
+    return true;
+  }
+}
+
+chrome.storage.onChanged.addListener((changes) => {
+  if (!SITE_TOGGLE_KEYS.some((k) => k in changes)) return;
+  siteToggle = loadSiteToggle(chrome.storage);
+  // Every tab's badge: "off" where Katch is off now, the count back where it's on again.
+  showLater();
+  chrome.tabs.query({}).then((tabs) => tabs.forEach((t) => showCount(t.id, t.url))).catch(() => {});
+});
+
+/** The browser's cookies for `url`, so logged-in and age-restricted downloads work in Katch. */
 async function cookiesFor(url) {
   try {
     return await chrome.cookies.getAll({ url });
@@ -83,7 +122,7 @@ function pageTracks(tabId) {
  * that tab's player played; then whatever subtitle files it loaded and the page's tracks.
  */
 async function subtitlesFor(tabId, url) {
-  if (tabId === undefined || !url) return [];
+  if (tabId === undefined || !url || !(await siteOn(tabId))) return [];
   const media = await mediaOf(tabId);
   const key = mediaKey(url);
   if (!media.items.some((i) => mediaKey(i.url) === key)) return [];
@@ -95,17 +134,28 @@ function header(headers, name) {
   return h ? h.value : "";
 }
 
-function showCount(tabId) {
+/** The tab's badge: how many media files it played, or "off" where Katch is off. */
+async function showCount(tabId, url) {
+  if (!(await siteOn(tabId, url))) {
+    const { paused } = await siteToggle;
+    chrome.action.setBadgeBackgroundColor({ tabId, color: OFF_GREY });
+    chrome.action.setBadgeText({ tabId, text: "off" });
+    chrome.action.setTitle({ tabId, title: paused ? "Katch (paused everywhere)" : "Katch (off on this site)" });
+    return;
+  }
   const n = tabMedia.get(tabId)?.items.length || 0;
   chrome.action.setBadgeBackgroundColor({ tabId, color: "#d9682b" });
   chrome.action.setBadgeText({ tabId, text: n ? String(n) : "" });
+  chrome.action.setTitle({ tabId, title: "Katch" });
 }
 
 chrome.webRequest.onResponseStarted.addListener(
-  (d) => {
+  async (d) => {
     if (d.tabId < 0) return;
     const sub = classifySubtitle({ url: d.url, contentType: header(d.responseHeaders, "content-type"), status: d.statusCode });
+    // Katch is off on the tab's site (or paused): nothing it loads is recorded.
     if (sub) {
+      if (!(await siteOn(d.tabId))) return;
       subsOf(d.tabId).then((list) => {
         if (list.add(sub)) chrome.storage.session.set({ [`subs:${d.tabId}`]: list.items }).catch(() => {});
       });
@@ -119,7 +169,7 @@ chrome.webRequest.onResponseStarted.addListener(
       status: d.statusCode,
       contentRange: header(d.responseHeaders, "content-range"),
     });
-    if (!found) return;
+    if (!found || !(await siteOn(d.tabId))) return;
     mediaOf(d.tabId).then((list) => {
       // The page (or embedded player) that loaded it: video hosts check it as Referer.
       // Firefox gives the full address; Chrome only the origin.
@@ -127,7 +177,7 @@ chrome.webRequest.onResponseStarted.addListener(
       if (!list.add({ ...found, size: found.size || size, referrer })) return;
       chrome.storage.session.set({ [`media:${d.tabId}`]: list.items }).catch(() => {});
       showCount(d.tabId);
-      // The page shows its "Download with Snag" button once it plays something.
+      // The page shows its "Download with Katch" button once it plays something.
       chrome.tabs.sendMessage(d.tabId, { type: "media-count", n: list.items.length }).catch(() => {});
     });
   },
@@ -138,14 +188,14 @@ chrome.webRequest.onResponseStarted.addListener(
 chrome.tabs.onUpdated.addListener((tabId, change) => {
   if (change.status === "loading" && change.url) {
     forgetMedia(tabId);
-    showCount(tabId);
+    showCount(tabId, change.url);
   }
 });
 chrome.tabs.onRemoved.addListener((tabId) => forgetMedia(tabId));
 
 /**
- * `mayPair`: the user just clicked, so Snag may ask "Allow?" first (see `pairedApp`).
- * `subtitles`: the subtitle files the page's player loaded (a newer Snag saves them; older ones
+ * `mayPair`: the user just clicked, so Katch may ask "Allow?" first (see `pairedApp`).
+ * `subtitles`: the subtitle files the page's player loaded (a newer Katch saves them; older ones
  * ignore them).
  */
 async function sendToApp(url, kind, referrer, fallback, { mayPair = false, subtitles } = {}) {
@@ -163,8 +213,8 @@ async function sendToApp(url, kind, referrer, fallback, { mayPair = false, subti
     }),
   });
   const body = await resp.json().catch(() => ({}));
-  // `permanent`: Snag will never take this link, so a waiting one is dropped (see drainLater).
-  if (!resp.ok) throw Object.assign(new Error(body.error || `Snag answered ${resp.status}`), { permanent: isPermanent(resp.status) });
+  // `permanent`: Katch will never take this link, so a waiting one is dropped (see drainLater).
+  if (!resp.ok) throw Object.assign(new Error(body.error || `Katch answered ${resp.status}`), { permanent: isPermanent(resp.status) });
   return body;
 }
 
@@ -177,12 +227,12 @@ async function sendBatch(urls, referrer) {
     body: JSON.stringify({ urls, referrer, cookies: await cookiesFor(referrer) }),
   });
   const body = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(body.error || `Snag answered ${resp.status}`);
+  if (!resp.ok) throw new Error(body.error || `Katch answered ${resp.status}`);
   return body;
 }
 
 /**
- * Snag reads a video page and lists its qualities (for the menu in the page / popup). A click
+ * Katch reads a video page and lists its qualities (for the menu in the page / popup). A click
  * sends the page's cookies and may connect first; a prefetch does neither.
  */
 async function probeInApp(url, { click = false } = {}) {
@@ -193,15 +243,15 @@ async function probeInApp(url, { click = false } = {}) {
     body: JSON.stringify({ url, cookies: click ? await cookiesFor(url) : [] }),
   });
   const body = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(body.error || `Snag answered ${resp.status}`);
+  if (!resp.ok) throw new Error(body.error || `Katch answered ${resp.status}`);
   return body;
 }
 
-// Pages Snag has read (or is reading): the menu opens with them ready. Ten minutes, then the
+// Pages Katch has read (or is reading): the menu opens with them ready. Ten minutes, then the
 // links inside go stale.
 const probes = new ProbeCache((url, opts) => probeInApp(url, opts), () => Date.now(), 10 * 60 * 1000);
 
-/** The quality picked in the menu (or a stream's "NOW" row): Snag adds it straight away. */
+/** The quality picked in the menu (or a stream's "NOW" row): Katch adds it straight away. */
 async function addMediaInApp(choice) {
   const { app, token } = await pairedApp({ mayPair: true });
   const resp = await fetch(`http://127.0.0.1:${app.port}/add-media`, {
@@ -210,37 +260,44 @@ async function addMediaInApp(choice) {
     body: JSON.stringify({ ...choice, cookies: await cookiesFor(choice.url) }),
   });
   const body = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(body.error || `Snag answered ${resp.status}`);
+  if (!resp.ok) throw new Error(body.error || `Katch answered ${resp.status}`);
   return body;
 }
 
-/** Brief ✓ / ! on the toolbar icon, then back to the count of links waiting for Snag. */
+/** Brief ✓ / ! on the toolbar icon, then back to the count of links waiting for Katch. */
 function flash(ok) {
   chrome.action.setBadgeBackgroundColor({ color: ok ? "#32d74b" : "#ff453a" });
   chrome.action.setBadgeText({ text: ok ? "✓" : "!" });
   setTimeout(showLater, 2500);
 }
 
-// ---------- links saved while Snag is closed ----------
+// ---------- links saved while Katch is closed ----------
 
 async function savedLinks() {
   return (await chrome.storage.local.get(["later"])).later || [];
 }
 
-/** The toolbar badge shows how many links wait for Snag (a tab's media count shows over it). */
+/** The toolbar badge shows how many links wait for Katch (a tab's media count shows over it). */
 async function showLater() {
+  if ((await siteToggle).paused) {
+    chrome.action.setBadgeBackgroundColor({ color: OFF_GREY });
+    chrome.action.setBadgeText({ text: "off" });
+    chrome.action.setTitle({ title: "Katch (paused everywhere)" });
+    return;
+  }
+  chrome.action.setTitle({ title: "Katch" });
   const list = await savedLinks();
   chrome.action.setBadgeBackgroundColor({ color: "#8e8e93" });
   chrome.action.setBadgeText({ text: laterBadge(list) });
 }
 
-/** A link the user sent: now, or kept for when Snag runs again. Returns true if it was kept. */
+/** A link the user sent: now, or kept for when Katch runs again. Returns true if it was kept. */
 async function sendOrSave(url, kind, referrer, fallback, subtitles) {
   try {
     await sendToApp(url, kind, referrer, fallback, { mayPair: true, subtitles });
     return false;
   } catch (e) {
-    if (e.message !== "Snag isn't running") throw e;
+    if (e.message !== "Katch isn't running") throw e;
     const entry = subtitles && subtitles.length ? { url, kind, referrer, fallback, subtitles } : { url, kind, referrer, fallback };
     const list = addLater(await savedLinks(), entry, Date.now());
     await chrome.storage.local.set({ later: list });
@@ -251,7 +308,7 @@ async function sendOrSave(url, kind, referrer, fallback, subtitles) {
 
 let draining = null;
 /**
- * Hands the waiting links to Snag, in order; whatever fails keeps waiting, except links Snag
+ * Hands the waiting links to Katch, in order; whatever fails keeps waiting, except links Katch
  * refuses for good, which are dropped. One run at a time.
  * It runs on its own (every minute), so it never connects: until the user does, links wait.
  */
@@ -277,8 +334,10 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 chrome.runtime.onStartup.addListener(() => sendSaved());
 sendSaved();
+// The browser doesn't keep the badge across restarts: show "off" again if Katch is paused.
+showLater();
 
-// Catch new Chrome downloads and move them to Snag.
+// Catch new Chrome downloads and move them to Katch.
 chrome.downloads.onCreated.addListener(async (item) => {
   const url = item.finalUrl || item.url;
   // One we gave back ourselves, by its first or its final address.
@@ -288,8 +347,8 @@ chrome.downloads.onCreated.addListener(async (item) => {
     return;
   }
   const s = await settings();
-  if (!shouldCatch(item, s, Date.now())) return;
-  // Only take the download away from the browser when Snag is running and paired.
+  if (!shouldCatch(item, s, Date.now()) || !(await catchesFrom(item))) return;
+  // Only take the download away from the browser when Katch is running and paired.
   const app = await findApp(s.token);
   if (!app || !app.paired) return;
 
@@ -303,8 +362,8 @@ chrome.downloads.onCreated.addListener(async (item) => {
     await sendToApp(url, "file", item.referrer);
     flash(true);
   } catch (e) {
-    // Snag unavailable: let Chrome download it after all, under the name it had.
-    console.warn("Snag:", e.message);
+    // Katch unavailable: let Chrome download it after all, under the name it had.
+    console.warn("Katch:", e.message);
     const again = handBackDownload(item);
     handBack.add(again.url);
     chrome.downloads.download(again).catch(() => chrome.downloads.download({ url: again.url }));
@@ -313,9 +372,9 @@ chrome.downloads.onCreated.addListener(async (item) => {
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({ id: "rdm-link", title: "Download with Snag", contexts: ["link", "video", "audio", "image"] });
-  chrome.contextMenus.create({ id: "rdm-page", title: "Download this page's video with Snag", contexts: ["page"] });
-  chrome.contextMenus.create({ id: "rdm-save-page", title: "Save this page with Snag (one offline file)", contexts: ["page"] });
+  chrome.contextMenus.create({ id: "rdm-link", title: "Download with Katch", contexts: ["link", "video", "audio", "image"] });
+  chrome.contextMenus.create({ id: "rdm-page", title: "Download this page's video with Katch", contexts: ["page"] });
+  chrome.contextMenus.create({ id: "rdm-save-page", title: "Save this page with Katch (one offline file)", contexts: ["page"] });
 });
 
 chrome.contextMenus.onClicked.addListener((info) => {
@@ -323,7 +382,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
   sendOrSave(url, kind, referrer)
     .then((later) => !later && flash(true))
     .catch((e) => {
-      console.warn("Snag:", e.message);
+      console.warn("Katch:", e.message);
       flash(false);
     });
 });
@@ -337,12 +396,13 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     return true;
   }
   if (msg.type === "media-list") {
+    // Off on the tab's site: nothing to offer (`off` tells the popup why).
     const tabId = tabOf(msg, sender);
-    mediaOf(tabId).then((list) => reply({ items: list.items }));
+    siteOn(tabId).then(async (on) => reply(on ? { items: (await mediaOf(tabId)).items } : { items: [], off: true }));
     return true;
   }
   if (msg.type === "send") {
-    // Sending a page: the stream it played is the fallback if Snag can't read the page itself.
+    // Sending a page: the stream it played is the fallback if Katch can't read the page itself.
     const tabId = tabOf(msg, sender);
     const best = msg.withFallback && tabId !== undefined ? mediaOf(tabId).then((l) => bestMedia(l.items)) : Promise.resolve(null);
     best
@@ -367,7 +427,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     return true;
   }
   if (msg.type === "prefetch") {
-    // Only when already connected (a prefetch never pops up "Allow?" in Snag), and without the
+    // Only when already connected (a prefetch never pops up "Allow?" in Katch), and without the
     // page's cookies: nobody has clicked anything yet.
     probes.get(pageKey(msg.url), { click: false });
     reply({ ok: true });

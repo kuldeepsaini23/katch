@@ -40,7 +40,7 @@ test("respects the switch, pairing, scheme, images, extensions and size", () => 
   assert.strictEqual(shouldCatch(fresh({ totalBytes: 0, fileSize: -1 }), on, NOW), true, "unknown size is caught");
 });
 
-test("a download Snag can't take goes back to the browser under its own name, folders left out", () => {
+test("a download Katch can't take goes back to the browser under its own name, folders left out", () => {
   const { handBackDownload } = require("../catch-rules.js");
   const url = "https://cdn.x/dl?id=7";
   assert.deepStrictEqual(handBackDownload({ url, filename: "C:\\Users\\me\\Downloads\\Report 2026.pdf" }), { url, filename: "Report 2026.pdf" });

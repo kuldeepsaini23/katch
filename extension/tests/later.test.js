@@ -15,7 +15,7 @@ test("draining sends in order and keeps whatever failed (nothing is lost)", asyn
   const list = [{ url: "u1" }, { url: "u2" }, { url: "u3" }];
   const sent = [];
   const left = await drainLater(list, async (e) => {
-    if (e.url === "u2") throw new Error("Snag isn't running");
+    if (e.url === "u2") throw new Error("Katch isn't running");
     sent.push(e.url);
   });
   assert.deepStrictEqual(sent, ["u1"], "stops at the first failure, so the order holds");
@@ -38,7 +38,7 @@ test("the waiting list holds at most 500 links: the oldest go first", () => {
   assert.strictEqual(list[499].url, "u501");
 });
 
-test("a link Snag refuses for good is dropped, so it never blocks the ones behind it", async () => {
+test("a link Katch refuses for good is dropped, so it never blocks the ones behind it", async () => {
   const list = [{ url: "ftp://x" }, { url: "u2" }, { url: "u3" }];
   const sent = [];
   const left = await drainLater(list, async (e) => {

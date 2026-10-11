@@ -3,7 +3,7 @@
 
 (() => {
   const HOST_ID = "rdm-download-pill";
-  // Reading a page can wait for "Allow" in Snag (up to two minutes) and then yt-dlp.
+  // Reading a page can wait for "Allow" in Katch (up to two minutes) and then yt-dlp.
   const ask = makeAsk(chrome.runtime, 150000);
   const askQuick = makeAsk(chrome.runtime, 5000);
   // A button left by an older copy of this script (the extension was updated) is dead: replace it.
@@ -62,7 +62,7 @@
         @media (prefers-reduced-motion: reduce) { .pill, .panel { transition: none; } .spinner { animation: none; } }
       </style>
       <div class="panel" role="dialog" aria-label="Choose a quality"></div>
-      <button class="pill" title="Download with Snag (drag to move it to another corner)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M6.5 10.5 12 16l5.5-5.5M5 20h14"/></svg><span class="label">Download</span></button>`;
+      <button class="pill" title="Download with Katch (drag to move it to another corner)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M6.5 10.5 12 16l5.5-5.5M5 20h14"/></svg><span class="label">Download</span></button>`;
     const pill = root.querySelector(".pill");
     const panel = root.querySelector(".panel");
 
@@ -130,11 +130,11 @@
       setTimeout(close, 1800);
     };
 
-    // Snag couldn't list qualities: hand it the page (and the stream it played) as before.
+    // Katch couldn't list qualities: hand it the page (and the stream it played) as before.
     const sendPage = () => {
-      note([el("span", "spinner"), "Sending to Snag…"]);
+      note([el("span", "spinner"), "Sending to Katch…"]);
       ask({ type: "send", url: location.href, kind: "media", referrer: location.href, withFallback: true }).then((r) =>
-        done(r.ok ? (r.later ? "Saved: goes to Snag when it opens" : "Sent to Snag ✓") : r.error),
+        done(r.ok ? (r.later ? "Saved: goes to Katch when it opens" : "Sent to Katch ✓") : r.error),
       );
     };
 
@@ -157,7 +157,7 @@
     const footer = () => {
       const foot = el("div", "foot");
       const hide = el("button", "link", `Hide on ${siteKey(location.hostname)}`);
-      hide.title = "Turn it back on from the Snag extension's popup";
+      hide.title = "Turn it back on from the Katch extension's popup";
       on(hide, "click", async () => {
         const { hiddenSites } = await chrome.storage.local.get(["hiddenSites"]);
         await chrome.storage.local.set({ hiddenSites: hideSite(hiddenSites, location.hostname) });
@@ -166,12 +166,12 @@
       return foot;
     };
 
-    // Snag's qualities for the page (ready at once when the prefetch finished).
+    // Katch's qualities for the page (ready at once when the prefetch finished).
     const qualityList = (info) => {
       const box = el("div");
       if (info.playlist > 0) {
         const all = el("button", "row");
-        all.append(el("span", "label", `Whole playlist (${info.playlist})`), el("span", "detail", "choose in Snag"));
+        all.append(el("span", "label", `Whole playlist (${info.playlist})`), el("span", "detail", "choose in Katch"));
         on(all, "click", sendPage);
         box.append(all);
       }
@@ -205,7 +205,7 @@
             s.kind === "media"
               ? { type: "add-media", choice: { url: s.url, title: document.title || "Video", format: { Video: { max_height: 4320 } }, referrer } }
               : { type: "send", url: s.url, kind: s.kind, referrer };
-          ask(msg).then((r) => done(r.ok ? "Downloading in Snag ✓" : r.error));
+          ask(msg).then((r) => done(r.ok ? "Downloading in Katch ✓" : r.error));
         });
         box.append(row);
       }
@@ -220,17 +220,17 @@
       if (panel.classList.contains("open")) return close();
       const status = await askQuick({ type: "status" });
       if (status.ok === false) return done(status.error);
-      // Snag is closed: keep the page for when it opens (the extension sends it then).
+      // Katch is closed: keep the page for when it opens (the extension sends it then).
       if (!status.app) return sendPage();
 
-      // Open at once with what's known; Snag's full quality list fills in when ready.
+      // Open at once with what's known; Katch's full quality list fills in when ready.
       const media = await askQuick({ type: "media-list" });
       const items = (media.items || []).slice(0, 6);
       panel.textContent = "";
       panel.append(header({}));
       if (items.length) panel.append(sniffedList(items));
       const pending = el("div", "note");
-      pending.append(el("span", "spinner"), status.app.paired ? "Finding all qualities…" : "Click Allow in the Snag window…");
+      pending.append(el("span", "spinner"), status.app.paired ? "Finding all qualities…" : "Click Allow in the Katch window…");
       panel.append(pending, footer());
       panel.classList.add("open");
 
@@ -240,9 +240,9 @@
         panel.replaceChild(header(r.info), panel.firstChild);
         pending.replaceWith(qualityList(r.info));
       } else if (items.length) {
-        pending.textContent = "Pick one above: Snag can't list qualities for this page.";
+        pending.textContent = "Pick one above: Katch can't list qualities for this page.";
       } else if (!r.ok && /No video found/.test(r.error || "")) {
-        pending.textContent = "Play the video first, then click Download: Snag picks up what the player loads.";
+        pending.textContent = "Play the video first, then click Download: Katch picks up what the player loads.";
       } else if (!r.ok && /reload this page|no answer|isn't running|not allowed|connect/i.test(r.error || "")) {
         done(r.error);
       } else {
@@ -271,16 +271,27 @@
   }
   // Known video pages only (never just because something played), once the address settles.
   const prefetch = new PrefetchPlan(1500, isVideoPage);
-  let hiddenSites = [];
+  // Both unknown (null) until read: the button waits rather than flashing up on a site it's off on.
+  let hiddenSites = null;
+  // Katch off on this site, or paused everywhere (site-toggle.js): no button, no prefetch.
+  let siteToggle = null;
+  const readSiteToggle = () =>
+    loadSiteToggle(chrome.storage).then((t) => {
+      siteToggle = t;
+      sync();
+    });
   chrome.storage.local.get(["hiddenSites"]).then((s) => {
     hiddenSites = s.hiddenSites || [];
     sync();
   });
+  readSiteToggle();
   chrome.storage.onChanged.addListener((changes) => {
     if (changes.hiddenSites) {
       hiddenSites = changes.hiddenSites.newValue || [];
       sync();
     }
+    // Turned off or on from the popup or the options page: the button goes or comes back now.
+    if (SITE_TOGGLE_KEYS.some((k) => k in changes)) readSiteToggle();
     if (!button) return;
     if (changes.buttonCorner) button.place(changes.buttonCorner.newValue);
     if (changes.accent) button.host.style.setProperty("--accent", safeAccent(changes.accent.newValue));
@@ -293,10 +304,10 @@
       lastUrl = location.href;
       mediaSeen = 0;
     }
-    const hidden = isHiddenOn(location.hostname, hiddenSites);
+    const hidden = !hiddenSites || !siteToggle || isHiddenOn(location.hostname, hiddenSites) || !isEnabled(location.hostname, siteToggle);
     const on = (isVideoPage(location.hostname, location.pathname) || mediaSeen > 0) && !hidden;
     show(on);
-    // Snag starts reading the page now, so the qualities are ready by the time you click.
+    // Katch starts reading the page now, so the qualities are ready by the time you click.
     const page = prefetch.next(hidden ? "" : location.href, Date.now());
     if (page) askQuick({ type: "prefetch", url: page });
   }
@@ -305,7 +316,7 @@
       mediaSeen = msg.n;
       sync();
     }
-    // A download of this page's stream: its subtitle tracks go to Snag with it.
+    // A download of this page's stream: its subtitle tracks go to Katch with it.
     if (msg.type === "track-list") reply(trackList(document.querySelectorAll("video track, audio track")));
   });
   askQuick({ type: "media-list" }).then((r) => {

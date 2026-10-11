@@ -7,6 +7,7 @@ name: Release
 #   macOS    Snag-macOS.zip (what the updater installs), Snag-macOS.dmg
 # then, once all three are up, SHA256SUMS-<version>.txt over every file of the release (the
 # in-app updater checks its download against it: crates/core/src/selfupdate.rs, checksum_for).
+# The Windows job's store packages also go to the Chrome, Firefox and Edge stores (stores.yml).
 on:
   release:
     types: [published]
@@ -74,6 +75,16 @@ jobs:
           ext_version=$(node -p "require('./extension/manifest.json').version")
           gh release upload "$TAG" "target/installer/Snag-Setup-$version.exe" target/installer/Snag-Setup.exe \
             target/store/*-"$ext_version".zip --clobber
+
+  stores:
+    # The extension to the Chrome, Firefox and Edge stores, once the Windows job has attached its
+    # packages (stores.yml: each store only with its secrets set, and only when the extension's
+    # version changed since the previous release; a store failure doesn't fail the release).
+    needs: windows
+    uses: ./.github/workflows/stores.yml
+    with:
+      tag: ${{ github.event.release.tag_name || inputs.tag }}
+    secrets: inherit
 
   linux:
     needs: version

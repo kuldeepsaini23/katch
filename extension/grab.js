@@ -83,7 +83,7 @@ function preselect(items) {
   return new Set(items.length > PRESELECT_MAX ? [] : items.map((i) => i.url));
 }
 
-/** Snag takes at most this many links per request. */
+/** Katch takes at most this many links per request. */
 const BATCH_MAX = 1000;
 
 /**
@@ -104,9 +104,9 @@ async function sendInChunks(urls, sendChunk, size = BATCH_MAX) {
   return total;
 }
 
-/** What "Download N" reports; `skipped` were downloaded before, so Snag left them out. */
+/** What "Download N" reports; `skipped` were downloaded before, so Katch left them out. */
 function batchMessage({ added, skipped = 0, error }) {
-  const done = skipped > 0 ? `${added} added, ${skipped} already downloaded` : `Sent ${added} to Snag`;
+  const done = skipped > 0 ? `${added} added, ${skipped} already downloaded` : `Sent ${added} to Katch`;
   if (!error) return `${done} ✓`;
   return added || skipped ? `${done}, then: ${error}` : error;
 }

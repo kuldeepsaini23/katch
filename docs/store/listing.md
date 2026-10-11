@@ -2,6 +2,8 @@
 
 Copy-paste material for the Chrome Web Store, Microsoft Edge Add-ons and Firefox Add-ons. The extension was listed as "Snag — Download Manager" up to 1.1.x: the same listings are renamed (same item and add-on IDs), not new ones.
 
+New versions go to all three stores automatically when a release is published: see [AUTOMATIC-UPLOADS.md](AUTOMATIC-UPLOADS.md) for the keys that needs.
+
 - **Packages:** `katch-chrome-<version>.zip` (Chrome, Edge) and the Firefox package web-ext names after the manifest's name (`katch_download_manager-<version>.zip` for "Katch Download Manager"), from `target/store/` after `bash installer/build.sh`, or attached to the GitHub release.
 - **Privacy policy URL:** https://katch.kuldeepsaini.dev/privacy (the stores were first given https://github.com/kuldeepsaini23/snag/blob/master/PRIVACY.md; both stay in sync)
 - **Homepage:** https://katch.kuldeepsaini.dev
@@ -50,7 +52,7 @@ Send the user's downloads — files, videos, audio and pictures from the pages t
 | `webRequest` | Reads the address, type and size of media a tab's video player loads, to offer those streams in the Download menu ("what's playing"). Requests are only observed, never changed or blocked. |
 | `scripting` | "Grab all from this page": runs a small script in the current tab, after the user clicks it, to list the page's links and pictures. |
 | `contextMenus` | The right-click items "Download with Katch" and "Save this page with Katch". |
-| `storage` | Remembers the connection code, the user's choices (button position, hidden sites, catch downloads) and links waiting for Katch to open. |
+| `storage` | Remembers the connection code, the user's choices (button position, hidden sites, catch downloads) and links waiting for Katch to open. The sites the user turned Katch off on, and whether it is paused, are kept in the browser's own synced extension storage (`storage.sync`) so they follow the user's browser sync; the developer never receives them. |
 | `alarms` | Once a minute, hands links saved while Katch was closed to Katch when it's running again. |
 | Host access `<all_urls>` | The Download button and stream detection work on any video site, and the site's cookies are needed when sending a download. |
 | Host `http://127.0.0.1/*` | The only place the extension sends data: the Katch app on the same computer. |

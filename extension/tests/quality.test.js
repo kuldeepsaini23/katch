@@ -27,10 +27,10 @@ test("qualities: best video first, audio last, each with what to send back", () 
   assert.deepStrictEqual(qualityRows({}), []);
 });
 
-test("the accent from Snag is used only when it is a real colour", () => {
+test("the accent from Katch is used only when it is a real colour", () => {
   assert.strictEqual(safeAccent("#0a84ff"), "#0a84ff");
   assert.strictEqual(safeAccent("#FFF"), "#FFF");
-  assert.strictEqual(safeAccent("red; background:url(x)"), "#d9682b", "Snag copper");
+  assert.strictEqual(safeAccent("red; background:url(x)"), "#d9682b", "Katch copper");
   assert.strictEqual(safeAccent(undefined), "#d9682b");
 });
 
@@ -107,7 +107,7 @@ test("right-click: an image is the image itself (instant), not the post it links
   // A video element's own file is a file too; a blob: player isn't, so the page goes instead.
   assert.strictEqual(contextTarget({ mediaType: "video", srcUrl: "https://cdn.x/v.mp4", pageUrl: page }).kind, "file");
   assert.deepStrictEqual(contextTarget({ mediaType: "video", srcUrl: "blob:https://x.com/1", pageUrl: page }), { url: page, kind: "media", referrer: undefined });
-  // A plain link: Snag decides (video page, file, torrent…).
+  // A plain link: Katch decides (video page, file, torrent…).
   assert.deepStrictEqual(contextTarget({ linkUrl: "https://site.com/file.zip", pageUrl: page }), { url: "https://site.com/file.zip", kind: undefined, referrer: page });
   // "Download this page".
   assert.deepStrictEqual(contextTarget({ menuItemId: "rdm-page", pageUrl: page }), { url: page, kind: "media", referrer: undefined });

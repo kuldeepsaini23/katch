@@ -1,4 +1,4 @@
-// The "Grab from page" tab: lists what the page links to or shows, lets you pick, sends the picks to Snag.
+// The "Grab from page" tab: lists what the page links to or shows, lets you pick, sends the picks to Katch.
 
 const $ = (id) => document.getElementById(id);
 const tabId = Number(new URLSearchParams(location.search).get("tab"));
