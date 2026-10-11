@@ -52,10 +52,10 @@ jobs:
       EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
       # What the store reviewers read (Firefox and Edge).
       REVIEW_NOTES: >-
-        Needs the Snag desktop app (Windows, free, open source:
+        Needs the Katch desktop app (Windows, free, open source:
         https://github.com/kuldeepsaini23/snag/releases/latest) running on the same computer; the
         extension talks only to http://127.0.0.1:47321-47326. Without the app, the popup shows
-        "Snag isn't running". Plain JavaScript, no bundler or minifier: the package is the source
+        "Katch isn't running". Plain JavaScript, no bundler or minifier: the package is the source
         (https://github.com/kuldeepsaini23/snag/tree/master/extension).
     steps:
       - uses: actions/checkout@v4

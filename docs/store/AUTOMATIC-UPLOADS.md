@@ -10,6 +10,8 @@ Publishing a GitHub release sends the extension to the Chrome Web Store, Firefox
 
 The extension has to be in each store already, published once by hand. The APIs only update an existing item.
 
+An upload changes the package only. The listing text, screenshots and icons stay as they are in each store's dashboard, so update the listings to the Katch name by hand.
+
 ## Adding a secret to GitHub
 
 1. Open https://github.com/kuldeepsaini23/snag/settings/secrets/actions (Settings → Secrets and variables → Actions).
@@ -25,12 +27,12 @@ Secrets: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`, `CWS_PUBLISH
 The workflow uses version 2 of the Chrome Web Store API, which needs the publisher ID as well as the extension ID.
 
 1. Make sure 2-Step Verification is on for the Google account that owns the extension. The API refuses to publish without it.
-2. Open https://console.cloud.google.com/ and create a project (for example "Snag store uploads").
+2. Open https://console.cloud.google.com/ and create a project (for example "Katch store uploads").
 3. Go to **APIs & Services → Library**, search for **Chrome Web Store API**, and click **Enable**.
 4. Go to **APIs & Services → OAuth consent screen** (Google Auth Platform).
-   1. Choose **External**, enter an app name ("Snag uploads") and your email, and save.
+   1. Choose **External**, enter an app name ("Katch uploads") and your email, and save.
    2. Under **Audience**, add the Google account that owns the extension as a **Test user**.
-   3. Click **Publish app** so the status reads **In production**. While the app is in "Testing", Google expires the refresh token after 7 days and uploads stop working. Google doesn't need to verify an app that only you use. You'll see a "Google hasn't verified this app" warning in step 7: click **Advanced → Go to Snag uploads**.
+   3. Click **Publish app** so the status reads **In production**. While the app is in "Testing", Google expires the refresh token after 7 days and uploads stop working. Google doesn't need to verify an app that only you use. You'll see a "Google hasn't verified this app" warning in step 7: click **Advanced → Go to Katch uploads**.
 5. Go to **APIs & Services → Credentials → Create credentials → OAuth client ID**.
    1. Application type: **Web application**.
    2. Under **Authorized redirect URIs**, add `https://developers.google.com/oauthplayground`.
@@ -42,7 +44,7 @@ The workflow uses version 2 of the Chrome Web Store API, which needs the publish
 8. Click **Exchange authorization code for tokens**, then copy the **Refresh token** into `CWS_REFRESH_TOKEN`.
 9. Open the Developer Dashboard at https://chrome.google.com/webstore/devconsole.
    1. **Publisher ID**: go to **Account** (or **Publisher → Settings**) and copy the publisher ID into `CWS_PUBLISHER_ID`.
-   2. **Extension ID**: open the Snag item and copy its 32-letter ID (it is also in the item's address) into `CWS_EXTENSION_ID`.
+   2. **Extension ID**: open the extension's item (listed as Snag until 2.0.0 is uploaded) and copy its 32-letter ID (it is also in the item's address) into `CWS_EXTENSION_ID`.
 
 If you later change the item's visibility in the dashboard, publish once by hand. Until then, API publishing fails.
 
@@ -57,7 +59,7 @@ Secrets: `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`.
 
 Notes:
 - The upload uses `web-ext sign --channel=listed`, which submits the new version for Mozilla's review and doesn't wait for it.
-- The extension is plain JavaScript with no bundler or minifier, so no separate source-code archive is needed. The reviewer note (that it needs the Snag app) goes with each version.
+- The extension is plain JavaScript with no bundler or minifier, so no separate source-code archive is needed. The reviewer note (that it needs the Katch app) goes with each version.
 
 ## Microsoft Edge Add-ons
 
@@ -68,7 +70,7 @@ Secrets: `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID`, `EDGE_API_KEY`.
 3. If the page shows "enable the new experience", click **Enable**. This switches to API keys (v1.1).
 4. Click **Create API credentials** and wait a few minutes.
 5. Copy the **Client ID** into `EDGE_CLIENT_ID` and the **API key** into `EDGE_API_KEY`. Note the key's **Expiry** date. When it expires, create a new key here and update the secret.
-6. Go to **Microsoft Edge → Overview** and open Snag. Copy the **Product ID** from **Extension identity** into `EDGE_PRODUCT_ID`. It is also the GUID in the address bar between `microsoftedge/` and `/packages`.
+6. Go to **Microsoft Edge → Overview** and open the extension (listed as Snag until 2.0.0 is uploaded). Copy the **Product ID** from **Extension identity** into `EDGE_PRODUCT_ID`. It is also the GUID in the address bar between `microsoftedge/` and `/packages`.
 
 ## Checking a run
 
