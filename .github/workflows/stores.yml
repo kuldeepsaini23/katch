@@ -2,7 +2,7 @@ name: Store uploads
 
 # Sends the browser extension to the Chrome Web Store, Firefox Add-ons (AMO) and Microsoft Edge
 # Add-ons. release.yml runs it once its Windows job has attached the store packages
-# (snag-chrome-<ext>.zip, snag_download_manager-<ext>.zip) to the release; it can also be run by
+# (katch-chrome-<ext>.zip, katch_download_manager-<ext>.zip) to the release; it can also be run by
 # hand for a tag whose release has them (Actions -> Store uploads -> Run workflow).
 #
 # - Each store only when all of its secrets are set (docs/store/AUTOMATIC-UPLOADS.md); otherwise
@@ -96,7 +96,7 @@ jobs:
           v="${{ steps.version.outputs.version }}"
           mkdir -p store
           gh release download "$TAG" --dir store --clobber \
-            --pattern "snag-chrome-$v.zip" --pattern "snag_download_manager-$v.zip"
+            --pattern "katch-chrome-$v.zip" --pattern "katch_download_manager-$v.zip"
           ls -la store
 
       - name: Chrome Web Store
@@ -111,7 +111,7 @@ jobs:
               exit 0
             fi
           done
-          zip="store/snag-chrome-${{ steps.version.outputs.version }}.zip"
+          zip="store/katch-chrome-${{ steps.version.outputs.version }}.zip"
           token=$(curl -sS --fail-with-body https://oauth2.googleapis.com/token \
             -d "client_id=$CWS_CLIENT_ID" -d "client_secret=$CWS_CLIENT_SECRET" \
             -d "refresh_token=$CWS_REFRESH_TOKEN" -d grant_type=refresh_token | jq -r .access_token)
@@ -154,7 +154,7 @@ jobs:
           done
           # The released package exactly, unpacked: web-ext signs a folder.
           rm -rf store/firefox && mkdir -p store/firefox
-          unzip -q "store/snag_download_manager-${{ steps.version.outputs.version }}.zip" -d store/firefox
+          unzip -q "store/katch_download_manager-${{ steps.version.outputs.version }}.zip" -d store/firefox
           jq -n --arg notes "$REVIEW_NOTES" '{version: {approval_notes: $notes}}' > store/amo-metadata.json
           # Listed: submitted for Mozilla's review, which can take days; don't wait for it
           # (--approval-timeout 0). The code isn't minified, so no separate source upload.
@@ -174,7 +174,7 @@ jobs:
               exit 0
             fi
           done
-          zip="store/snag-chrome-${{ steps.version.outputs.version }}.zip"
+          zip="store/katch-chrome-${{ steps.version.outputs.version }}.zip"
           api="https://api.addons.microsoftedge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
           auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
 

@@ -1,10 +1,12 @@
 name: Release
 
-# Publishing a GitHub release builds Snag for all three systems and attaches it:
-#   Windows  Snag-Setup-<version>.exe, Snag-Setup.exe (the same, for a link that never goes
-#            stale), snag-chrome-<ext>.zip and snag_download_manager-<ext>.zip (store packages)
-#   Linux    Snag-x86_64.AppImage, snag_<version>_amd64.deb
-#   macOS    Snag-macOS.zip (what the updater installs), Snag-macOS.dmg
+# Publishing a GitHub release builds Katch for all three systems and attaches it:
+#   Windows  Katch-Setup-<version>.exe, Katch-Setup.exe (the same, for a link that never goes
+#            stale), katch-chrome-<ext>.zip and katch_download_manager-<ext>.zip (store packages)
+#   Linux    Katch-x86_64.AppImage, katch_<version>_amd64.deb
+#   macOS    Katch-macOS.zip (what the updater installs), Katch-macOS.dmg
+# plus byte-identical copies under Snag's old names (Snag-Setup*.exe, Snag-x86_64.AppImage,
+# Snag-macOS.zip) so Snag 1.1.3 and older still find their update (RELEASE-ALIASES.md).
 # then, once all three are up, SHA256SUMS-<version>.txt over every file of the release (the
 # in-app updater checks its download against it: crates/core/src/selfupdate.rs, checksum_for).
 # The Windows job's store packages also go to the Chrome, Firefox and Edge stores (stores.yml).
@@ -73,7 +75,10 @@ jobs:
         run: |
           version="${TAG#v}"
           ext_version=$(node -p "require('./extension/manifest.json').version")
-          gh release upload "$TAG" "target/installer/Snag-Setup-$version.exe" target/installer/Snag-Setup.exe \
+          # Katch's files, plus copies under Snag's names for Snag 1.1.3 and older (RELEASE-ALIASES.md).
+          gh release upload "$TAG" \
+            "target/installer/Katch-Setup-$version.exe" target/installer/Katch-Setup.exe \
+            "target/installer/Snag-Setup-$version.exe" target/installer/Snag-Setup.exe \
             target/store/*-"$ext_version".zip --clobber
 
   stores:
@@ -117,7 +122,9 @@ jobs:
       - name: Upload to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$TAG" target/linux/Snag-x86_64.AppImage "target/linux/snag_${TAG#v}_amd64.deb" --clobber
+        run: |
+          gh release upload "$TAG" target/linux/Katch-x86_64.AppImage target/linux/Snag-x86_64.AppImage \
+            "target/linux/katch_${TAG#v}_amd64.deb" --clobber
 
   macos:
     needs: version
@@ -137,13 +144,15 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
-      - name: Build Snag.app, the zip and the disk image
+      - name: Build Katch.app, the zip and the disk image
         run: bash packaging/macos/build.sh
 
       - name: Upload to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$TAG" target/macos/Snag-macOS.zip target/macos/Snag-macOS.dmg --clobber
+        run: |
+          gh release upload "$TAG" target/macos/Katch-macOS.zip target/macos/Katch-macOS.dmg \
+            target/macos/Snag-macOS.zip --clobber
 
   checksums:
     # Written once, after every system's files are up: nothing appends to it concurrently.
