@@ -1,7 +1,7 @@
 // Snag extension background: finds the desktop app on 127.0.0.1 and hands it links.
 // Chrome runs it as a service worker; Firefox loads catch-rules.js before it (see build.js).
 
-if (typeof importScripts === "function") importScripts("catch-rules.js", "sniffer.js", "quality.js", "later.js", "connect.js");
+if (typeof importScripts === "function") importScripts("catch-rules.js", "sniffer.js", "quality.js", "later.js", "connect.js", "site-toggle.js");
 
 const DEFAULTS = { token: "", catchDownloads: true, minSizeMB: 1 };
 // Downloads we gave back to Chrome because Snag couldn't take them: don't catch them again.
@@ -15,6 +15,45 @@ const { findApp, pair, pairedApp } = makeConnection((url, opts) => fetch(url, op
   token: async () => (await settings()).token,
   saveToken: (token) => chrome.storage.local.set({ token }),
   saveAccent: (accent) => chrome.storage.local.set({ accent }).catch(() => {}),
+});
+
+// ---------- Snag off on some sites, or paused (site-toggle.js) ----------
+
+let siteToggle = loadSiteToggle(chrome.storage);
+// The toolbar badge where Snag is off: quiet, next to the copper count.
+const OFF_GREY = "#5c5650";
+
+/** Whether Snag works on the page in tab `tabId` (its address `url` when known already). */
+async function siteOn(tabId, url) {
+  const s = await siteToggle;
+  if (s.paused) return false;
+  if (!s.offSites.length || tabId === undefined || tabId < 0) return true;
+  try {
+    url ??= (await chrome.tabs.get(tabId)).url;
+    return isEnabled(new URL(url).hostname, s);
+  } catch (_) {
+    // A tab that's gone, or not a web page: nothing to turn off.
+    return true;
+  }
+}
+
+/** Whether Snag takes a download the browser started: by the page it came from (else itself). */
+async function catchesFrom(item) {
+  const s = await siteToggle;
+  if (s.paused) return false;
+  try {
+    return isEnabled(new URL(item.referrer || item.finalUrl || item.url).hostname, s);
+  } catch (_) {
+    return true;
+  }
+}
+
+chrome.storage.onChanged.addListener((changes) => {
+  if (!SITE_TOGGLE_KEYS.some((k) => k in changes)) return;
+  siteToggle = loadSiteToggle(chrome.storage);
+  // Every tab's badge: "off" where Snag is off now, the count back where it's on again.
+  showLater();
+  chrome.tabs.query({}).then((tabs) => tabs.forEach((t) => showCount(t.id, t.url))).catch(() => {});
 });
 
 /** The browser's cookies for `url`, so logged-in and age-restricted downloads work in Snag. */
@@ -83,7 +122,7 @@ function pageTracks(tabId) {
  * that tab's player played; then whatever subtitle files it loaded and the page's tracks.
  */
 async function subtitlesFor(tabId, url) {
-  if (tabId === undefined || !url) return [];
+  if (tabId === undefined || !url || !(await siteOn(tabId))) return [];
   const media = await mediaOf(tabId);
   const key = mediaKey(url);
   if (!media.items.some((i) => mediaKey(i.url) === key)) return [];
@@ -95,17 +134,28 @@ function header(headers, name) {
   return h ? h.value : "";
 }
 
-function showCount(tabId) {
+/** The tab's badge: how many media files it played, or "off" where Snag is off. */
+async function showCount(tabId, url) {
+  if (!(await siteOn(tabId, url))) {
+    const { paused } = await siteToggle;
+    chrome.action.setBadgeBackgroundColor({ tabId, color: OFF_GREY });
+    chrome.action.setBadgeText({ tabId, text: "off" });
+    chrome.action.setTitle({ tabId, title: paused ? "Snag (paused everywhere)" : "Snag (off on this site)" });
+    return;
+  }
   const n = tabMedia.get(tabId)?.items.length || 0;
   chrome.action.setBadgeBackgroundColor({ tabId, color: "#d9682b" });
   chrome.action.setBadgeText({ tabId, text: n ? String(n) : "" });
+  chrome.action.setTitle({ tabId, title: "Snag" });
 }
 
 chrome.webRequest.onResponseStarted.addListener(
-  (d) => {
+  async (d) => {
     if (d.tabId < 0) return;
     const sub = classifySubtitle({ url: d.url, contentType: header(d.responseHeaders, "content-type"), status: d.statusCode });
+    // Snag is off on the tab's site (or paused): nothing it loads is recorded.
     if (sub) {
+      if (!(await siteOn(d.tabId))) return;
       subsOf(d.tabId).then((list) => {
         if (list.add(sub)) chrome.storage.session.set({ [`subs:${d.tabId}`]: list.items }).catch(() => {});
       });
@@ -119,7 +169,7 @@ chrome.webRequest.onResponseStarted.addListener(
       status: d.statusCode,
       contentRange: header(d.responseHeaders, "content-range"),
     });
-    if (!found) return;
+    if (!found || !(await siteOn(d.tabId))) return;
     mediaOf(d.tabId).then((list) => {
       // The page (or embedded player) that loaded it: video hosts check it as Referer.
       // Firefox gives the full address; Chrome only the origin.
@@ -138,7 +188,7 @@ chrome.webRequest.onResponseStarted.addListener(
 chrome.tabs.onUpdated.addListener((tabId, change) => {
   if (change.status === "loading" && change.url) {
     forgetMedia(tabId);
-    showCount(tabId);
+    showCount(tabId, change.url);
   }
 });
 chrome.tabs.onRemoved.addListener((tabId) => forgetMedia(tabId));
@@ -229,6 +279,13 @@ async function savedLinks() {
 
 /** The toolbar badge shows how many links wait for Snag (a tab's media count shows over it). */
 async function showLater() {
+  if ((await siteToggle).paused) {
+    chrome.action.setBadgeBackgroundColor({ color: OFF_GREY });
+    chrome.action.setBadgeText({ text: "off" });
+    chrome.action.setTitle({ title: "Snag (paused everywhere)" });
+    return;
+  }
+  chrome.action.setTitle({ title: "Snag" });
   const list = await savedLinks();
   chrome.action.setBadgeBackgroundColor({ color: "#8e8e93" });
   chrome.action.setBadgeText({ text: laterBadge(list) });
@@ -277,6 +334,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 chrome.runtime.onStartup.addListener(() => sendSaved());
 sendSaved();
+// The browser doesn't keep the badge across restarts: show "off" again if Snag is paused.
+showLater();
 
 // Catch new Chrome downloads and move them to Snag.
 chrome.downloads.onCreated.addListener(async (item) => {
@@ -288,7 +347,7 @@ chrome.downloads.onCreated.addListener(async (item) => {
     return;
   }
   const s = await settings();
-  if (!shouldCatch(item, s, Date.now())) return;
+  if (!shouldCatch(item, s, Date.now()) || !(await catchesFrom(item))) return;
   // Only take the download away from the browser when Snag is running and paired.
   const app = await findApp(s.token);
   if (!app || !app.paired) return;
@@ -337,8 +396,9 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     return true;
   }
   if (msg.type === "media-list") {
+    // Off on the tab's site: nothing to offer (`off` tells the popup why).
     const tabId = tabOf(msg, sender);
-    mediaOf(tabId).then((list) => reply({ items: list.items }));
+    siteOn(tabId).then(async (on) => reply(on ? { items: (await mediaOf(tabId)).items } : { items: [], off: true }));
     return true;
   }
   if (msg.type === "send") {
