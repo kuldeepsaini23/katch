@@ -1,0 +1,13 @@
+[package]
+name = "rdm-mcp"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rdm-core = { path = "../core" }
+serde_json.workspace = true
+
+[dev-dependencies]
+rdm-bridge = { path = "../bridge" }
+tokio.workspace = true
+tempfile.workspace = true

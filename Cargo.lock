@@ -5799,6 +5799,7 @@ dependencies = [
  "rdm-bridge",
  "rdm-core",
  "rdm-engine",
+ "rdm-mcp",
  "rdm-media",
  "rfd",
  "serde_json",
@@ -5876,6 +5877,17 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "rdm-mcp"
+version = "2.0.1"
+dependencies = [
+ "rdm-bridge",
+ "rdm-core",
+ "serde_json",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]

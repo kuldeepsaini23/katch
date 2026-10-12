@@ -15,6 +15,7 @@ Katch was called **Snag** up to version 1.1.3. A Snag install updates itself to 
 - **Catches what's playing.** The extension sees the video stream a page's player loads and hands it to Katch, so downloads start instantly, even on sites yt-dlp doesn't know.
 - **Pictures, torrents and pages.** Image galleries (Pinterest, Imgur, Reddit, Instagram and X posts), magnet links and .torrent files, and whole web pages saved as one offline file.
 - **Rules after download.** Convert to MP3, shrink videos, unpack archives or move files, by type, site or category.
+- **Works with Claude.** Katch is an MCP server: ask Claude (or any MCP app) to "download this playlist as MP3" and Katch does it. [Set it up](#use-with-claude-mcp).
 - **Safety check.** Look up downloaded programs on VirusTotal with your own free key; only the file's SHA-256 fingerprint is sent.
 - **Around the app.** Clipboard watch, queues and schedules, a speed limit, send links from your phone, watched channels, stats, light and dark themes, any accent colour.
 
@@ -52,6 +53,38 @@ Chrome, Edge, Brave and other Chromium browsers:
 Firefox: run `node extension/build.js` and load `extension/dist/firefox` from `about:debugging` → This Firefox → Load Temporary Add-on.
 
 After updating the extension, reload it and press F5 on open tabs.
+
+### Use with Claude (MCP)
+
+Katch speaks the [Model Context Protocol](https://modelcontextprotocol.io), so Claude can download for you: "get this video in 1080p", "download the first five videos of this playlist as MP3", "grab this repo", "how far along is my download?".
+
+The easy way: **Katch → Settings → Extension → Use with Claude**, then
+
+- **Claude Desktop:** click **Copy config**, paste it into Claude → Settings → Developer → Edit Config, and restart Claude.
+- **Claude Code:** click **Copy command** and run it once in a terminal.
+
+Or by hand, with your Katch's path (`katch --mcp` starts the MCP server):
+
+```json
+{
+  "mcpServers": {
+    "katch": { "command": "C:\\Program Files\\Katch\\snag.exe", "args": ["--mcp"] }
+  }
+}
+```
+
+The path is `/Applications/Katch.app/Contents/MacOS/snag` on macOS, and `/usr/bin/snag` or your `Katch-x86_64.AppImage` on Linux. For Claude Code: `claude mcp add katch -- "<path>" --mcp`.
+
+What Claude can do:
+
+| Tool | What it does |
+| --- | --- |
+| `download` | A video in the quality asked for or as MP3, a whole playlist or chosen videos from it, a file, a GitHub repository (as a ZIP) or a magnet link |
+| `inspect_link` | A video's title, length and qualities, or a playlist's numbered videos, without downloading |
+| `list_downloads` | Downloads with their progress, speed and where finished files are |
+| `pause_download`, `resume_download` | Pause or resume one download |
+
+The MCP server talks only to the Katch on your own computer, with the extension's pairing code, and starts Katch in the tray if it isn't running. It can add, read, pause and resume downloads, never remove or delete them.
 
 ## Privacy
 
