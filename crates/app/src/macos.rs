@@ -19,6 +19,8 @@ static ON_QUIT: OnceLock<Box<dyn Fn() + Send + Sync>> = OnceLock::new();
 /// When listening began: the activation macOS sends as the app starts isn't a click on the Dock,
 /// and must not open a window that started hidden (at login).
 static STARTED: OnceLock<std::time::Instant> = OnceLock::new();
+/// Whether that startup activation was already let through without opening the window.
+static STARTUP_SKIPPED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 define_class!(
     #[unsafe(super(NSObject))]
@@ -33,7 +35,11 @@ define_class!(
         /// the menu bar's Open Katch does.
         #[unsafe(method(didBecomeActive:))]
         fn did_become_active(&self, _note: &NSNotification) {
-            if STARTED.get().is_some_and(|t| t.elapsed() > std::time::Duration::from_secs(3)) {
+            // Only the first activation, and only right after start, is macOS's own; a Dock
+            // click in those first seconds still opens the window.
+            let startup = STARTED.get().is_some_and(|t| t.elapsed() < std::time::Duration::from_secs(3))
+                && !STARTUP_SKIPPED.swap(true, std::sync::atomic::Ordering::Relaxed);
+            if !startup {
                 crate::tray::open_window();
             }
         }

@@ -170,7 +170,13 @@ fn playlist(title: &str, entries: &[Value], args: &Value, want: Option<u32>, kat
             for p in positions {
                 let n = p.as_u64().unwrap_or(0) as usize;
                 let e = entries.get(n.wrapping_sub(1)).ok_or_else(|| format!("\"{title}\" has {} videos; there is no video {n}.", entries.len()))?;
-                out.push((n, e));
+                // Each video once, however often it's asked for.
+                if !out.iter().any(|(m, _)| *m == n) {
+                    out.push((n, e));
+                }
+            }
+            if out.len() > MAX_BATCH {
+                return Err(format!("That's {} videos; Katch takes up to {MAX_BATCH} per call. Ask for them in parts.", out.len()));
             }
             out
         }
@@ -372,6 +378,22 @@ mod tests {
         let err = run(&mut k, "download", json!({ "url": "https://www.youtube.com/playlist?list=x", "videos": [9] })).unwrap_err();
         assert!(err.contains("has 4 videos; there is no video 9"), "{err}");
         assert!(!k.sent.iter().any(|(p, _)| p == "/add-media"), "nothing added when a position is wrong");
+    }
+
+    #[test]
+    fn picked_videos_are_added_once_and_at_most_a_hundred() {
+        let entries: Vec<Value> = (1..=150).map(|n| json!({ "url": format!("https://v.example/{n}"), "title": format!("V{n}") })).collect();
+        let info = json!({ "title": "Channel", "entries": entries, "options": [] });
+        let mut k = Fake { probe: Some(Ok(info.clone())), ..Default::default() };
+        let text = run(&mut k, "download", json!({ "url": "https://www.youtube.com/@x/videos", "videos": [3, 3, 1, 3] })).unwrap();
+        let adds: Vec<&str> = k.sent.iter().filter(|(p, _)| p == "/add-media").map(|(_, b)| b["title"].as_str().unwrap()).collect();
+        assert_eq!(adds, ["V3", "V1"], "{text}");
+
+        let mut k = Fake { probe: Some(Ok(info)), ..Default::default() };
+        let all: Vec<u64> = (1..=101).collect();
+        let err = run(&mut k, "download", json!({ "url": "https://www.youtube.com/@x/videos", "videos": all })).unwrap_err();
+        assert!(err.contains("up to 100 per call"), "{err}");
+        assert!(!k.sent.iter().any(|(p, _)| p == "/add-media"));
     }
 
     #[test]

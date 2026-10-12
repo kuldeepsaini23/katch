@@ -96,15 +96,17 @@ impl Local {
 
     fn request(&mut self, method: &str, path: &str, body: Option<Value>) -> Result<Value, Error> {
         let (port, token) = self.connect()?;
-        let result = http(port, method, path, &token, body.as_ref(), REPLY_TIMEOUT);
-        let (status, reply) = match result {
+        let unanswered = |e: Failure| Error::Unreachable(format!("Katch didn't answer: {}", e.why));
+        let (status, reply) = match http(port, method, path, &token, body.as_ref(), REPLY_TIMEOUT) {
             Ok(r) => r,
-            // Katch quit or restarted between requests: find it again, once.
-            Err(_) => {
+            // Katch quit or restarted between requests: find it again and send once more. Only
+            // when the request never reached it: an add it did receive must not be added twice.
+            Err(Failure { sent: false, .. }) => {
                 self.port = None;
                 let (port, token) = self.connect()?;
-                http(port, method, path, &token, body.as_ref(), REPLY_TIMEOUT).map_err(|e| Error::Unreachable(format!("Katch didn't answer: {e}")))?
+                http(port, method, path, &token, body.as_ref(), REPLY_TIMEOUT).map_err(unanswered)?
             }
+            Err(e) => return Err(unanswered(e)),
         };
         if (200..300).contains(&status) {
             Ok(reply)
@@ -136,26 +138,35 @@ fn ping(port: u16, token: &str) -> Ping {
     }
 }
 
+/// A request that failed, and whether it reached Katch (then it may have been done).
+struct Failure {
+    why: String,
+    sent: bool,
+}
+
 /// One request to the bridge on `port`: its status and JSON body.
-fn http(port: u16, method: &str, path: &str, token: &str, body: Option<&Value>, timeout: Duration) -> Result<(u16, Value), String> {
+fn http(port: u16, method: &str, path: &str, token: &str, body: Option<&Value>, timeout: Duration) -> Result<(u16, Value), Failure> {
+    let not_sent = |e: std::io::Error| Failure { why: e.to_string(), sent: false };
+    let sent = |why: &str| Failure { why: why.to_string(), sent: true };
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
-    let mut stream = TcpStream::connect_timeout(&addr, Duration::from_millis(500)).map_err(|e| e.to_string())?;
-    stream.set_read_timeout(Some(timeout)).map_err(|e| e.to_string())?;
+    let mut stream = TcpStream::connect_timeout(&addr, Duration::from_millis(500)).map_err(not_sent)?;
+    stream.set_read_timeout(Some(timeout)).map_err(not_sent)?;
     let body = body.map(Value::to_string).unwrap_or_default();
     let request = format!(
         "{method} {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nX-RDM-Token: {token}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
         body.len()
     );
-    stream.write_all(request.as_bytes()).map_err(|e| e.to_string())?;
+    // Katch acts on a request only once it has all of it, so a failed write sent nothing.
+    stream.write_all(request.as_bytes()).map_err(not_sent)?;
     let mut raw = Vec::new();
-    stream.read_to_end(&mut raw).map_err(|e| e.to_string())?;
-    let split = raw.windows(4).position(|w| w == b"\r\n\r\n").ok_or("not an HTTP reply")?;
+    stream.read_to_end(&mut raw).map_err(|e| sent(&e.to_string()))?;
+    let split = raw.windows(4).position(|w| w == b"\r\n\r\n").ok_or_else(|| sent("not an HTTP reply"))?;
     let head = String::from_utf8_lossy(&raw[..split]).to_string();
     let mut content = raw[split + 4..].to_vec();
     if head.to_ascii_lowercase().contains("transfer-encoding: chunked") {
         content = unchunk(&content);
     }
-    let status = head.split_whitespace().nth(1).and_then(|s| s.parse().ok()).ok_or("not an HTTP reply")?;
+    let status = head.split_whitespace().nth(1).and_then(|s| s.parse().ok()).ok_or_else(|| sent("not an HTTP reply"))?;
     Ok((status, serde_json::from_slice(&content).unwrap_or(Value::Null)))
 }
 
@@ -237,6 +248,32 @@ mod tests {
     fn chunked_bodies_are_put_back_together() {
         assert_eq!(unchunk(b"4\r\n{\"a\"\r\n3\r\n:1}\r\n0\r\n\r\n"), b"{\"a\":1}");
         assert_eq!(unchunk(b""), b"");
+    }
+
+    #[test]
+    fn an_add_that_reached_katch_is_never_sent_twice() {
+        // A Katch that answers /ping but drops the connection after reading an /add.
+        let listener = std::net::TcpListener::bind("127.0.0.1:48993").unwrap();
+        let adds = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let seen = adds.clone();
+        std::thread::spawn(move || {
+            for stream in listener.incoming().flatten() {
+                let mut stream = stream;
+                let mut buf = [0u8; 4096];
+                let n = stream.read(&mut buf).unwrap_or(0);
+                let request = String::from_utf8_lossy(&buf[..n]).to_string();
+                if request.starts_with("GET /ping") {
+                    let body = r#"{"app":"rdm","paired":true}"#;
+                    let _ = write!(stream, "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{body}", body.len());
+                } else {
+                    seen.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                }
+            }
+        });
+        let mut k = Local::new(48993..=48993, || "code".into());
+        let err = k.post("/add", serde_json::json!({ "url": "https://example.com/a.zip" })).unwrap_err();
+        assert!(matches!(err, Error::Unreachable(ref why) if why.contains("didn't answer")), "{err:?}");
+        assert_eq!(adds.load(std::sync::atomic::Ordering::SeqCst), 1, "not resent: Katch may have added it");
     }
 
     #[test]

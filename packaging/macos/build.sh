@@ -27,7 +27,9 @@ lipo -create -output "$app/Contents/MacOS/snag" \
 sed "s/@VERSION@/$version/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
 # Only macOS's own libraries may be linked: a library from the build machine (Homebrew's
 # liblzma, say) is missing on most Macs and Katch would quit at launch.
-if otool -L "$app/Contents/MacOS/snag" | grep -E "^\s" | grep -vE "^\s+(/usr/lib/|/System/Library/)"; then
+# A failing otool must stop the build too, not read as "nothing linked".
+libs=$(otool -L "$app/Contents/MacOS/snag")
+if grep -E "^\s" <<<"$libs" | grep -vE "^\s+(/usr/lib/|/System/Library/)"; then
   echo "Katch links libraries outside macOS (above): build them in instead" >&2
   exit 1
 fi
