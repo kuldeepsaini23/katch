@@ -1,10 +1,10 @@
 [workspace]
 resolver = "3"
-members = ["crates/engine", "crates/media", "crates/torrent", "crates/core", "crates/bridge", "crates/cli", "crates/app"]
+members = ["crates/engine", "crates/media", "crates/torrent", "crates/core", "crates/bridge", "crates/mcp", "crates/cli", "crates/app"]
 exclude = ["vendor"]
 
 [workspace.package]
-version = "2.0.0"
+version = "2.0.1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/kuldeepsaini23/katch"

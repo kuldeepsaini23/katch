@@ -37,6 +37,17 @@ fn main() -> iced::Result {
     // %APPDATA%\Snag (an older %APPDATA%\rdm is moved there once); ~/.local/share/snag on Linux;
     // ~/Library/Application Support/Snag on macOS.
     let state_path = rdm_core::dirs::app_dir().join("state.json");
+    // `katch --mcp`: an MCP server on stdin/stdout, for Claude and other AI apps (see rdm-mcp). It
+    // drives the Katch that is running, through the extension's bridge, and starts it in the tray
+    // when it isn't; it never opens a window or takes the single-instance lock itself.
+    if std::env::args().any(|a| a == "--mcp") {
+        let token_from = state_path.clone();
+        let exe = rdm_mcp::local::katch_exe();
+        let mut katch = rdm_mcp::Local::new(rdm_bridge::PORTS, move || rdm_core::store::load(&token_from).settings.extension_token)
+            .launch_with(move || rdm_mcp::local::launch_detached(&exe));
+        let _ = rdm_mcp::serve(std::io::stdin().lock(), std::io::stdout().lock(), &mut katch);
+        return Ok(());
+    }
     let saved = rdm_core::store::load(&state_path).settings;
     // CPU or GPU drawing (see `renderer`), decided before any other thread exists. macOS always
     // draws with Metal unless `ICED_BACKEND` says otherwise.

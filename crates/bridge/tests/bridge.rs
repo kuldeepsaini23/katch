@@ -586,3 +586,58 @@ async fn a_sniffed_file_and_a_fallback_stream_keep_their_subtitles() {
     assert_eq!(item.url, "https://cdn.example/v/movie.mp4");
     assert_eq!(item.subtitle_links.len(), 1);
 }
+
+#[tokio::test]
+async fn a_playlist_probe_lists_its_videos() {
+    let dir = tempfile::tempdir().unwrap();
+    install_fake_ytdlp(dir.path());
+    std::fs::write(
+        dir.path().join("bin").join("channel.json"),
+        r#"{"_type":"playlist","title":"Open movies","entries":[
+            {"url":"https://videos.example/watch/a","title":"First","duration":61},
+            {"url":"https://videos.example/watch/b","title":"Second","duration":122}]}"#,
+    )
+    .unwrap();
+    let m = manager(dir.path()).await;
+    let b = start(m, 48411..=48420).await.unwrap();
+    let (status, info) = post_to(b.port, "/probe", json!({ "url": "https://videos.example/channel" }), TOKEN).await;
+    assert_eq!(status, 200, "{info}");
+    assert_eq!(info["playlist"], 2);
+    let entries = info["entries"].as_array().expect("the videos, for MCP to pick from");
+    assert_eq!(entries.len(), 2);
+    assert_eq!(entries[1]["url"], "https://videos.example/watch/b");
+    assert_eq!(entries[1]["title"], "Second");
+    assert_eq!(entries[1]["duration"], 122.0);
+}
+
+#[tokio::test]
+async fn the_download_list_shows_progress_and_downloads_pause_and_resume() {
+    let dir = tempfile::tempdir().unwrap();
+    let m = manager(dir.path()).await;
+    let b = start(m.clone(), 48421..=48430).await.unwrap();
+    assert_eq!(get(b.port, "/list", Some("wrong")).await.0, 401);
+    let (_, added) = post(b.port, json!({"url": "https://example.com/setup.exe", "kind": "file"}), TOKEN).await;
+    let id = added["id"].as_u64().unwrap();
+
+    let (status, list) = get(b.port, "/list", Some(TOKEN)).await;
+    assert_eq!(status, 200, "{list}");
+    let items = list["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["id"], id);
+    assert_eq!(items[0]["name"], "setup.exe");
+    assert_eq!(items[0]["url"], "https://example.com/setup.exe");
+    assert_eq!(items[0]["status"], "paused", "start_immediately is off in these tests");
+    assert!(items[0].get("downloaded").is_some() && items[0].get("speed").is_some(), "{list}");
+
+    assert_eq!(post_to(b.port, "/control", json!({"id": id, "action": "resume"}), "wrong").await.0, 401);
+    let (status, reply) = post_to(b.port, "/control", json!({"id": id, "action": "resume"}), TOKEN).await;
+    assert_eq!(status, 200, "{reply}");
+    assert_ne!(m.snapshot().await.items[0].status, rdm_core::Status::Paused);
+    let (status, _) = post_to(b.port, "/control", json!({"id": id, "action": "pause"}), TOKEN).await;
+    assert_eq!(status, 200);
+    assert_eq!(m.snapshot().await.items[0].status, rdm_core::Status::Paused);
+    let (status, reply) = post_to(b.port, "/control", json!({"id": id, "action": "delete"}), TOKEN).await;
+    assert_eq!(status, 400, "only pause and resume: {reply}");
+    let (status, _) = post_to(b.port, "/control", json!({"id": 999, "action": "pause"}), TOKEN).await;
+    assert_eq!(status, 404);
+}

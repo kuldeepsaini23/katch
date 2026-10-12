@@ -227,6 +227,9 @@ pub enum Message {
     AccentSv(f32, f32),
     AccentHue(f32),
     CopyToken,
+    /// The MCP setup for Claude Desktop (JSON) or Claude Code (a command), to the clipboard.
+    CopyMcpConfig,
+    CopyMcpCommand,
     NewToken,
     AddQueue,
     DeleteQueue(usize),
@@ -991,6 +994,14 @@ fn handle(app: &mut App, message: Message) -> Task<Message> {
         Message::CopyToken => {
             model.notice = Some("Pairing code copied".into());
             return iced::clipboard::write(model.settings.extension_token.clone());
+        }
+        Message::CopyMcpConfig => {
+            model.notice = Some("Copied: paste it into Claude's config file".into());
+            return iced::clipboard::write(rdm_mcp::client_config(&rdm_mcp::local::katch_exe().to_string_lossy()));
+        }
+        Message::CopyMcpCommand => {
+            model.notice = Some("Copied: run it in a terminal".into());
+            return iced::clipboard::write(rdm_mcp::claude_code_command(&rdm_mcp::local::katch_exe().to_string_lossy()));
         }
         Message::NewToken => {
             let settings = rdm_core::Settings { extension_token: rdm_core::new_token(), ..model.settings.clone() };

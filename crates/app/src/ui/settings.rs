@@ -505,9 +505,25 @@ fn extension<'a>(m: &'a Model, phone: Option<(&'a str, &'a iced::widget::qr_code
             c,
         ),
         section("Phone", phone_rows, c),
+        section(
+            "Use with Claude (MCP)",
+            vec![
+                line("Claude Desktop", "Paste into Claude → Settings → Developer → Edit Config, then restart Claude. Ask it to download anything", copy_button(Message::CopyMcpConfig, "Copy config", c), c),
+                line("Claude Code", "Run this once in a terminal", copy_button(Message::CopyMcpCommand, "Copy command", c), c),
+            ],
+            c,
+        ),
     ]
     .spacing(18)
     .into()
+}
+
+fn copy_button<'a>(message: Message, label: &'a str, c: Colors) -> Element<'a, Message> {
+    button(row![icon(Icon::Copy, 13), text(label).size(12.5).font(style::SEMIBOLD)].spacing(6).align_y(Alignment::Center))
+        .style(style::secondary(c))
+        .padding([7, 12])
+        .on_press(message)
+        .into()
 }
 
 fn tools(m: &Model, c: Colors) -> Element<'_, Message> {

@@ -192,11 +192,18 @@ const lines: Entry[] = [
     spec: ".zip",
     description: "Paste a GitHub repository or branch link and Katch downloads the code as a ZIP.",
   },
+  {
+    n: 9,
+    name: "Ask Claude",
+    meta: "Claude Desktop · Claude Code · any MCP app",
+    spec: "MCP",
+    description: "Tell Claude “download this playlist as MP3” and Katch does it. Katch is an MCP server: turn it on from Settings → Extension in one click.",
+  },
 ];
 
 const tools: Entry[] = [
   {
-    n: 9,
+    n: 10,
     name: "A safety check for programs",
     meta: "VirusTotal · your own free key",
     spec: "SHA-256",
@@ -219,7 +226,7 @@ const tools: Entry[] = [
     ),
   },
   {
-    n: 10,
+    n: 11,
     name: "Rules after download",
     meta: "By type, site or category",
     spec: "automatic",
@@ -242,7 +249,7 @@ const tools: Entry[] = [
     ),
   },
   {
-    n: 11,
+    n: 12,
     name: "Stats",
     meta: "By day, by type, by site",
     spec: "7d · 30d · all",
@@ -260,7 +267,7 @@ const tools: Entry[] = [
     ),
   },
   {
-    n: 12,
+    n: 13,
     name: "Themes and any accent colour",
     meta: "Light · dark · any colour",
     spec: "yours",

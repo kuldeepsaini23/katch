@@ -15,6 +15,7 @@ percent-encoding.workspace = true
 rdm-core = { path = "../core" }
 rdm-media = { path = "../media" }
 rdm-bridge = { path = "../bridge" }
+rdm-mcp = { path = "../mcp" }
 rdm-engine = { path = "../engine" }
 iced = { version = "0.14", features = ["tokio", "image", "qr_code", "canvas"] }
 tokio.workspace = true
@@ -47,7 +48,7 @@ rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "t
 [target.'cfg(target_os = "macos")'.dependencies]
 notify-rust = "4"
 objc2 = "0.6"
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSObject"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSObject", "NSNotification", "NSString"] }
 objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSResponder"] }
 
 [dev-dependencies]

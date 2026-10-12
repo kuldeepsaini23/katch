@@ -25,6 +25,14 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 lipo -create -output "$app/Contents/MacOS/snag" \
   target/aarch64-apple-darwin/release/snag target/x86_64-apple-darwin/release/snag
 sed "s/@VERSION@/$version/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
+# Only macOS's own libraries may be linked: a library from the build machine (Homebrew's
+# liblzma, say) is missing on most Macs and Katch would quit at launch.
+# A failing otool must stop the build too, not read as "nothing linked".
+libs=$(otool -L "$app/Contents/MacOS/snag")
+if grep -E "^\s" <<<"$libs" | grep -vE "^\s+(/usr/lib/|/System/Library/)"; then
+  echo "Katch links libraries outside macOS (above): build them in instead" >&2
+  exit 1
+fi
 printf 'APPL????' > "$app/Contents/PkgInfo"
 
 # The icon: the logo on macOS's icon grid (packaging/macos/icon-*.png, from docs/logo), the bold

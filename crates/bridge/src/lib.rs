@@ -25,7 +25,7 @@ pub async fn start(manager: Manager, ports: RangeInclusive<u16>) -> Result<Bridg
     for port in ports {
         match tokio::net::TcpListener::bind(("127.0.0.1", port)).await {
             Ok(listener) => {
-                let app = Router::new().route("/ping", get(ping)).route("/add", post(add)).route("/focus", post(focus)).route("/quit", post(quit)).route("/add-batch", post(add_batch)).route("/pair", post(pair)).route("/probe", post(probe)).route("/add-media", post(add_media_choice)).with_state(manager);
+                let app = Router::new().route("/ping", get(ping)).route("/add", post(add)).route("/focus", post(focus)).route("/quit", post(quit)).route("/add-batch", post(add_batch)).route("/pair", post(pair)).route("/probe", post(probe)).route("/add-media", post(add_media_choice)).route("/list", get(list)).route("/control", post(control)).with_state(manager);
                 tokio::spawn(async move {
                     let _ = axum::serve(listener, app).await;
                 });
@@ -220,6 +220,9 @@ async fn probe(State(manager): State<Manager>, headers: HeaderMap, Json(req): Js
                 "duration": info.duration,
                 "live": info.live,
                 "playlist": info.entries.len(),
+                // The videos themselves, for MCP clients that pick from a playlist (the extension
+                // only shows the count).
+                "entries": info.entries.iter().take(MAX_ENTRIES).map(|e| json!({ "url": e.url, "title": e.title, "duration": e.duration })).collect::<Vec<_>>(),
                 "options": options,
             });
             (StatusCode::OK, Json(body))
@@ -337,6 +340,65 @@ async fn quit(State(manager): State<Manager>, headers: HeaderMap) -> (StatusCode
         return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired" })));
     }
     manager.request_quit().await;
+    (StatusCode::OK, Json(json!({ "ok": true })))
+}
+
+/// The most playlist videos `/probe` lists (a channel can have thousands).
+const MAX_ENTRIES: usize = 1000;
+
+/// The downloads, newest first, with their progress: for MCP clients ("how is it going?").
+async fn list(State(manager): State<Manager>, headers: HeaderMap) -> (StatusCode, Json<Value>) {
+    if !authorized(&manager, &headers).await {
+        return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired" })));
+    }
+    let mut items = manager.snapshot().await.items;
+    items.sort_by_key(|i| std::cmp::Reverse(i.id.0));
+    let items: Vec<Value> = items
+        .iter()
+        .map(|i| {
+            let (status, error) = match &i.status {
+                rdm_core::Status::Queued => ("queued", None),
+                rdm_core::Status::Running => ("running", None),
+                rdm_core::Status::Paused => ("paused", None),
+                rdm_core::Status::Done => ("done", None),
+                rdm_core::Status::Failed(e) => ("failed", Some(e.as_str())),
+            };
+            json!({
+                "id": i.id.0,
+                "name": i.name,
+                "url": i.url,
+                "status": status,
+                "error": error,
+                "downloaded": i.downloaded,
+                "total": i.total,
+                "speed": i.speed_bps,
+                "path": i.dest,
+            })
+        })
+        .collect();
+    (StatusCode::OK, Json(json!({ "items": items })))
+}
+
+#[derive(Deserialize)]
+struct ControlRequest {
+    id: u64,
+    action: String,
+}
+
+/// Pauses or resumes one download. Nothing else: removing or deleting stays in Katch's window.
+async fn control(State(manager): State<Manager>, headers: HeaderMap, Json(req): Json<ControlRequest>) -> (StatusCode, Json<Value>) {
+    if !authorized(&manager, &headers).await {
+        return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "not paired" })));
+    }
+    let id = rdm_core::ItemId(req.id);
+    if !manager.snapshot().await.items.iter().any(|i| i.id == id) {
+        return (StatusCode::NOT_FOUND, Json(json!({ "error": format!("no download with id {}", req.id) })));
+    }
+    match req.action.as_str() {
+        "pause" => manager.pause(id).await,
+        "resume" => manager.resume(id).await,
+        other => return (StatusCode::BAD_REQUEST, Json(json!({ "error": format!("unknown action {other:?}: use pause or resume") }))),
+    }
     (StatusCode::OK, Json(json!({ "ok": true })))
 }
 
