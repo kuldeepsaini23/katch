@@ -57,6 +57,11 @@ const questions: { q: string; value: string; a: React.ReactNode }[] = [
     a: "To join HD video with its sound and to make MP3s. Katch fetches it once, the first time you need it (about 35 MB, checked against its published checksum). Ordinary file downloads never need it.",
   },
   {
+    q: "Does it work with Claude?",
+    value: "Yes · MCP",
+    a: "Yes. Katch is an MCP server, so Claude Desktop, Claude Code and other MCP apps can download with it: ask for a video in 1080p, a playlist as MP3 or a GitHub repo, or how a download is going. In Katch, open Settings → Extension → Use with Claude and copy the config or the command. It talks only to the Katch on your own computer and can add, pause and resume downloads, never delete them.",
+  },
+  {
     q: "Wasn’t this called Snag?",
     value: "Yes · renamed",
     a: "Yes. Snag is now Katch: the same app, under a new name. If you have Snag, it updates itself to Katch, and your downloads, history and settings stay as they are.",
