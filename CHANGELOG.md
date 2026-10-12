@@ -2,6 +2,12 @@
 
 Newest first. Katch (called Snag up to 1.1.3) shows the newest entry once after an update; the Help menu (?) has the full list.
 
+## 2.0.1 — 2026-10-12
+
+### Fixed
+- macOS: Katch no longer quits at start ("quit unexpectedly"). Clicking its Dock icon still brings the window back, and quitting still saves your downloads first.
+- macOS: Katch no longer needs Homebrew's liblzma: it's built in, so Katch starts on any Mac.
+
 ## 2.0.0 — 2026-10-12
 
 ### New

@@ -22,7 +22,7 @@ reqwest.workspace = true
 # Linux: ffmpeg comes as a .tar.xz (xz2 is already built for zip).
 [target.'cfg(not(windows))'.dependencies]
 tar = "0.4"
-xz2 = "0.1"
+xz2 = { version = "0.1", features = ["static"] } # liblzma built in: never the build machine's Homebrew copy
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
